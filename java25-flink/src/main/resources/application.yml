@@ -2,20 +2,20 @@ spring:
   application:
     name: java25-flink
 
-  server:
-    port: 8081
+server:
+  port: 8080
 
-  flink:
-    jobmanager:
-      host: localhost
-      port: 6123
-    rest:
-      url: http://localhost:8082
-    jar:
-      path: target/java25-flink-0.0.1-SNAPSHOT.jar
+flink:
+  jobmanager:
+    host: localhost
+    port: 6123
+  rest:
+    url: http://localhost:8081
+  jar:
+    path: target/java25-flink-1.0-SNAPSHOT.jar
 
-  management:
-    endpoints:
-      web:
-        exposure:
-          include: health, info, metrics
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics

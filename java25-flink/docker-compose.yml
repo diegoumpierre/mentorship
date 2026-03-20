@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  jobmanager:
+    image: flink:2.0-java21
+    ports:
+      - "8081:8081"
+      - "6123:6123"
+    command: jobmanager
+    environment:
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: jobmanager
+        jobmanager.rpc.port: 6123
+        rest.port: 8081
+    networks:
+      - flink-network
+
+  taskmanager:
+    image: flink:2.0-java21
+    depends_on:
+      - jobmanager
+    command: taskmanager
+    environment:
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 4
+        taskmanager.memory.process.size: 1728m
+    networks:
+      - flink-network
+
+networks:
+  flink-network:
+    driver: bridge
