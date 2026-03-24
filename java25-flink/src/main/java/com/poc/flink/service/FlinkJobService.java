@@ -1,6 +1,7 @@
 package com.poc.flink.service;
 
 import com.poc.flink.config.FlinkConfig;
+import com.poc.flink.job.WindowedWordCountJob;
 import com.poc.flink.job.WordCountJob;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.springframework.core.io.FileSystemResource;
@@ -47,6 +48,30 @@ public class FlinkJobService {
             env.setParallelism(1);
             log.info("Running job locally");
             WordCountJob.execute(env, text);
+            return "Job completed";
+        } catch (Exception e) {
+            log.severe("Job failed " + e.getMessage());
+            return "Job failed: " + e.getMessage();
+        }
+    }
+
+    public String submitWindowedWordCountJob(String text, int windowSeconds) {
+        try {
+            String jarId = uploadJar();
+            log.info("JAR uploaded, id: " + jarId);
+            return runJar(jarId, text);
+        } catch (Exception e) {
+            log.severe("Job failed " + e.getMessage());
+            return "Job failed " + e.getMessage();
+        }
+    }
+
+    public String runWindowedWordCountLocally(String text, int windowSeconds) {
+        try {
+            StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+            env.setParallelism(1);
+            log.info("Running windowed word count locally with " + windowSeconds + "s window");
+            WindowedWordCountJob.execute(env, text, windowSeconds);
             return "Job completed";
         } catch (Exception e) {
             log.severe("Job failed " + e.getMessage());

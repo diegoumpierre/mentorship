@@ -43,4 +43,20 @@ public class FlinkController {
         String result = flinkJobService.runWordCountLocally(text);
         return ResponseEntity.ok(result);
     }
+
+    @PostMapping("/jobs/windowed-wordcount")
+    public ResponseEntity<String> submitWindowedWordCount(@RequestBody Map<String, String> request) {
+        String text = request.getOrDefault("text", "hello world hello flink");
+        int windowSeconds = Integer.parseInt(request.getOrDefault("windowSeconds", "10"));
+        String result = flinkJobService.submitWindowedWordCountJob(text, windowSeconds);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/jobs/windowed-wordcount/local")
+    public ResponseEntity<String> runWindowedWordCountLocal(@RequestBody Map<String, String> request) {
+        String text = request.getOrDefault("text", "hello world hello flink");
+        int windowSeconds = Integer.parseInt(request.getOrDefault("windowSeconds", "10"));
+        String result = flinkJobService.runWindowedWordCountLocally(text, windowSeconds);
+        return ResponseEntity.ok(result);
+    }
 }
