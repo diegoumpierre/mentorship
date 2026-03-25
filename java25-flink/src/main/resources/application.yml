@@ -14,6 +14,12 @@ flink:
   jar:
     path: target/java25-flink-1.0-SNAPSHOT.jar
 
+kafka:
+  bootstrap-servers: localhost:9092
+  input-topic: words-input
+  output-topic: words-output
+  group-id: flink-word-count
+
 management:
   endpoints:
     web:
