@@ -19,6 +19,8 @@ kafka:
   input-topic: words-input
   output-topic: words-output
   group-id: flink-word-count
+  transactions-topic: transactions-input
+  fraud-alerts-topic: fraud-alerts
 
 management:
   endpoints:

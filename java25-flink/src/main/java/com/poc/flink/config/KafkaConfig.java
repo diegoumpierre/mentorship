@@ -18,4 +18,10 @@ public class KafkaConfig {
 
     @Value("${kafka.group-id}")
     private String groupId;
+
+    @Value("${kafka.transactions-topic}")
+    private String transactionsTopic;
+
+    @Value("${kafka.fraud-alerts-topic}")
+    private String fraudAlertsTopic;
 }

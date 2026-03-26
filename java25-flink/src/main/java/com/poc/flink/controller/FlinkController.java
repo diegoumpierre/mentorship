@@ -73,4 +73,16 @@ public class FlinkController {
         String result = flinkJobService.runKafkaWordCountLocally(windowSeconds);
         return ResponseEntity.ok(result);
     }
+
+    @PostMapping("/jobs/fraud-detection")
+    public ResponseEntity<String> submitFraudDetection() {
+        String result = flinkJobService.submitFraudDetectionJob();
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/jobs/fraud-detection/local")
+    public ResponseEntity<String> runFraudDetectionLocal() {
+        String result = flinkJobService.runFraudDetectionLocally();
+        return ResponseEntity.ok(result);
+    }
 }

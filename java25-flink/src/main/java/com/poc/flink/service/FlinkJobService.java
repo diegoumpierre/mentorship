@@ -2,6 +2,7 @@ package com.poc.flink.service;
 
 import com.poc.flink.config.FlinkConfig;
 import com.poc.flink.config.KafkaConfig;
+import com.poc.flink.job.FraudDetectionJob;
 import com.poc.flink.job.KafkaWordCountJob;
 import com.poc.flink.job.WindowedWordCountJob;
 import com.poc.flink.job.WordCountJob;
@@ -102,6 +103,35 @@ public class FlinkJobService {
         }
     }
 
+    public String runFraudDetectionLocally() {
+        try {
+            StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+            env.setParallelism(1);
+            log.info("Running Fraud Detection CEP locally - reading from " + kafkaConfig.getTransactionsTopic()
+                    + ", alerts to " + kafkaConfig.getFraudAlertsTopic());
+            FraudDetectionJob.execute(env,
+                    kafkaConfig.getBootstrapServers(),
+                    kafkaConfig.getTransactionsTopic(),
+                    kafkaConfig.getFraudAlertsTopic(),
+                    "fraud-detection");
+            return "Fraud Detection CEP job started";
+        } catch (Exception e) {
+            log.severe("Fraud Detection job failed: " + e.getMessage());
+            return "Fraud Detection job failed: " + e.getMessage();
+        }
+    }
+
+    public String submitFraudDetectionJob() {
+        try {
+            String jarId = uploadJar();
+            log.info("JAR uploaded, id: " + jarId);
+            return runFraudDetectionJar(jarId);
+        } catch (Exception e) {
+            log.severe("Fraud Detection job submission failed: " + e.getMessage());
+            return "Fraud Detection job submission failed: " + e.getMessage();
+        }
+    }
+
     public String submitKafkaWordCountJob(int windowSeconds) {
         try {
             String jarId = uploadJar();
@@ -183,5 +213,23 @@ public class FlinkJobService {
                 flinkConfig.getRestUrl() + "/jars/" + jarId + "/run", body, Map.class);
 
         return "Kafka job submitted successfully, jobId: " + response.get("jobid");
+    }
+
+    @SuppressWarnings("unchecked")
+    private String runFraudDetectionJar(String jarId) {
+        Map<String, Object> body = Map.of(
+                "entryClass", "com.poc.flink.job.FraudDetectionJob",
+                "programArgsList", List.of(
+                        kafkaConfig.getBootstrapServers(),
+                        kafkaConfig.getTransactionsTopic(),
+                        kafkaConfig.getFraudAlertsTopic(),
+                        "fraud-detection"
+                )
+        );
+
+        Map<String, Object> response = restTemplate.postForObject(
+                flinkConfig.getRestUrl() + "/jars/" + jarId + "/run", body, Map.class);
+
+        return "Fraud Detection job submitted successfully, jobId: " + response.get("jobid");
     }
 }
