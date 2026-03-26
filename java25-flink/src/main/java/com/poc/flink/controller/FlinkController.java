@@ -59,4 +59,18 @@ public class FlinkController {
         String result = flinkJobService.runWindowedWordCountLocally(text, windowSeconds);
         return ResponseEntity.ok(result);
     }
+
+    @PostMapping("/jobs/kafka-wordcount")
+    public ResponseEntity<String> submitKafkaWordCount(@RequestBody Map<String, String> request) {
+        int windowSeconds = Integer.parseInt(request.getOrDefault("windowSeconds", "10"));
+        String result = flinkJobService.submitKafkaWordCountJob(windowSeconds);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/jobs/kafka-wordcount/local")
+    public ResponseEntity<String> runKafkaWordCountLocal(@RequestBody Map<String, String> request) {
+        int windowSeconds = Integer.parseInt(request.getOrDefault("windowSeconds", "10"));
+        String result = flinkJobService.runKafkaWordCountLocally(windowSeconds);
+        return ResponseEntity.ok(result);
+    }
 }

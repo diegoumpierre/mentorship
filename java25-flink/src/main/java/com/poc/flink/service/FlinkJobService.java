@@ -1,6 +1,8 @@
 package com.poc.flink.service;
 
 import com.poc.flink.config.FlinkConfig;
+import com.poc.flink.config.KafkaConfig;
+import com.poc.flink.job.KafkaWordCountJob;
 import com.poc.flink.job.WindowedWordCountJob;
 import com.poc.flink.job.WordCountJob;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -25,10 +27,12 @@ public class FlinkJobService {
     private static final String ENTRY_CLASS = "com.poc.flink.job.WordCountJob";
 
     private final FlinkConfig flinkConfig;
+    private final KafkaConfig kafkaConfig;
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public FlinkJobService(FlinkConfig flinkConfig) {
+    public FlinkJobService(FlinkConfig flinkConfig, KafkaConfig kafkaConfig) {
         this.flinkConfig = flinkConfig;
+        this.kafkaConfig = kafkaConfig;
     }
 
     public String submitWordCountJob(String text) {
@@ -76,6 +80,36 @@ public class FlinkJobService {
         } catch (Exception e) {
             log.severe("Job failed " + e.getMessage());
             return "Job failed: " + e.getMessage();
+        }
+    }
+
+    public String runKafkaWordCountLocally(int windowSeconds) {
+        try {
+            StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+            env.setParallelism(1);
+            log.info("Running Kafka word count locally - reading from " + kafkaConfig.getInputTopic()
+                    + ", writing to " + kafkaConfig.getOutputTopic());
+            KafkaWordCountJob.execute(env,
+                    kafkaConfig.getBootstrapServers(),
+                    kafkaConfig.getInputTopic(),
+                    kafkaConfig.getOutputTopic(),
+                    kafkaConfig.getGroupId(),
+                    windowSeconds);
+            return "Kafka Word Count job started";
+        } catch (Exception e) {
+            log.severe("Kafka job failed: " + e.getMessage());
+            return "Kafka job failed: " + e.getMessage();
+        }
+    }
+
+    public String submitKafkaWordCountJob(int windowSeconds) {
+        try {
+            String jarId = uploadJar();
+            log.info("JAR uploaded, id: " + jarId);
+            return runKafkaJar(jarId, windowSeconds);
+        } catch (Exception e) {
+            log.severe("Kafka job submission failed: " + e.getMessage());
+            return "Kafka job submission failed: " + e.getMessage();
         }
     }
 
@@ -132,5 +166,22 @@ public class FlinkJobService {
         return "Job submitted successfully, jobId: " + response.get("jobid");
     }
 
+    @SuppressWarnings("unchecked")
+    private String runKafkaJar(String jarId, int windowSeconds) {
+        Map<String, Object> body = Map.of(
+                "entryClass", "com.poc.flink.job.KafkaWordCountJob",
+                "programArgsList", List.of(
+                        kafkaConfig.getBootstrapServers(),
+                        kafkaConfig.getInputTopic(),
+                        kafkaConfig.getOutputTopic(),
+                        kafkaConfig.getGroupId(),
+                        String.valueOf(windowSeconds)
+                )
+        );
 
+        Map<String, Object> response = restTemplate.postForObject(
+                flinkConfig.getRestUrl() + "/jars/" + jarId + "/run", body, Map.class);
+
+        return "Kafka job submitted successfully, jobId: " + response.get("jobid");
+    }
 }
