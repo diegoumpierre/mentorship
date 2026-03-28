@@ -4,6 +4,7 @@ import com.poc.flink.config.FlinkConfig;
 import com.poc.flink.config.KafkaConfig;
 import com.poc.flink.job.FraudDetectionJob;
 import com.poc.flink.job.KafkaWordCountJob;
+import com.poc.flink.job.UserSessionJob;
 import com.poc.flink.job.WindowedWordCountJob;
 import com.poc.flink.job.WordCountJob;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -121,6 +122,35 @@ public class FlinkJobService {
         }
     }
 
+    public String runUserSessionLocally() {
+        try {
+            StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+            env.setParallelism(1);
+            log.info("Running User Session Tracking locally - reading from " + kafkaConfig.getUserEventsTopic()
+                    + ", summaries to " + kafkaConfig.getSessionSummariesTopic());
+            UserSessionJob.execute(env,
+                    kafkaConfig.getBootstrapServers(),
+                    kafkaConfig.getUserEventsTopic(),
+                    kafkaConfig.getSessionSummariesTopic(),
+                    "user-session-tracker");
+            return "User Session Tracking job started";
+        } catch (Exception e) {
+            log.severe("User Session job failed: " + e.getMessage());
+            return "User Session job failed: " + e.getMessage();
+        }
+    }
+
+    public String submitUserSessionJob() {
+        try {
+            String jarId = uploadJar();
+            log.info("JAR uploaded, id: " + jarId);
+            return runUserSessionJar(jarId);
+        } catch (Exception e) {
+            log.severe("User Session job submission failed: " + e.getMessage());
+            return "User Session job submission failed: " + e.getMessage();
+        }
+    }
+
     public String submitFraudDetectionJob() {
         try {
             String jarId = uploadJar();
@@ -161,6 +191,24 @@ public class FlinkJobService {
             log.severe("Failed to list Flink jobs: " + e.getMessage());
             return Map.of("error", "Cannot list jobs: " + e.getMessage());
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private String runUserSessionJar(String jarId) {
+        Map<String, Object> body = Map.of(
+                "entryClass", "com.poc.flink.job.UserSessionJob",
+                "programArgsList", List.of(
+                        kafkaConfig.getBootstrapServers(),
+                        kafkaConfig.getUserEventsTopic(),
+                        kafkaConfig.getSessionSummariesTopic(),
+                        "user-session-tracker"
+                )
+        );
+
+        Map<String, Object> response = restTemplate.postForObject(
+                flinkConfig.getRestUrl() + "/jars/" + jarId + "/run", body, Map.class);
+
+        return "User Session job submitted successfully, jobId: " + response.get("jobid");
     }
 
     @SuppressWarnings("unchecked")

@@ -24,4 +24,10 @@ public class KafkaConfig {
 
     @Value("${kafka.fraud-alerts-topic}")
     private String fraudAlertsTopic;
+
+    @Value("${kafka.user-events-topic}")
+    private String userEventsTopic;
+
+    @Value("${kafka.session-summaries-topic}")
+    private String sessionSummariesTopic;
 }

@@ -106,6 +106,42 @@ class FlinkControllerTest {
         assertThat(stubService.lastWordCountText).isEqualTo("submit word Count");
     }
 
+    @Test
+    void submitFraudDetectionReturnsResult() {
+        stubService.fraudDetectionResult = "Fraud Detection job submitted successfully, jobId: fraud123";
+
+        ResponseEntity<String> response = controller.submitFraudDetection();
+
+        assertThat(response.getBody()).isEqualTo("Fraud Detection job submitted successfully, jobId: fraud123");
+    }
+
+    @Test
+    void runFraudDetectionLocalReturnsResult() {
+        stubService.fraudDetectionLocalResult = "Fraud Detection CEP job started";
+
+        ResponseEntity<String> response = controller.runFraudDetectionLocal();
+
+        assertThat(response.getBody()).isEqualTo("Fraud Detection CEP job started");
+    }
+
+    @Test
+    void submitUserSessionReturnsResult() {
+        stubService.userSessionResult = "User Session job submitted successfully, jobId: session123";
+
+        ResponseEntity<String> response = controller.submitUserSession();
+
+        assertThat(response.getBody()).isEqualTo("User Session job submitted successfully, jobId: session123");
+    }
+
+    @Test
+    void runUserSessionLocalReturnsResult() {
+        stubService.userSessionLocalResult = "User Session Tracking job started";
+
+        ResponseEntity<String> response = controller.runUserSessionLocal();
+
+        assertThat(response.getBody()).isEqualTo("User Session Tracking job started");
+    }
+
     static class StubFlinkJobService extends FlinkJobService {
 
         String wordCountResult = "";
@@ -114,6 +150,10 @@ class FlinkControllerTest {
         String windowedLocalResult = "";
         String kafkaResult = "";
         String kafkaLocalResult = "";
+        String fraudDetectionResult = "";
+        String fraudDetectionLocalResult = "";
+        String userSessionResult = "";
+        String userSessionLocalResult = "";
         Map<String, Object> clusterStatus = Map.of();
         Map<String, Object> jobsList = Map.of();
         String lastWordCountText;
@@ -151,6 +191,26 @@ class FlinkControllerTest {
         @Override
         public String runKafkaWordCountLocally(int windowSeconds) {
             return kafkaLocalResult;
+        }
+
+        @Override
+        public String submitFraudDetectionJob() {
+            return fraudDetectionResult;
+        }
+
+        @Override
+        public String runFraudDetectionLocally() {
+            return fraudDetectionLocalResult;
+        }
+
+        @Override
+        public String submitUserSessionJob() {
+            return userSessionResult;
+        }
+
+        @Override
+        public String runUserSessionLocally() {
+            return userSessionLocalResult;
         }
 
         @Override

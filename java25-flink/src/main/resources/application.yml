@@ -21,6 +21,8 @@ kafka:
   group-id: flink-word-count
   transactions-topic: transactions-input
   fraud-alerts-topic: fraud-alerts
+  user-events-topic: user-events
+  session-summaries-topic: session-summaries
 
 management:
   endpoints:

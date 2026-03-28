@@ -25,6 +25,10 @@ class FlinkJobServiceTest {
         setField(kafkaConfig, "inputTopic", "words-input");
         setField(kafkaConfig, "outputTopic", "words-output");
         setField(kafkaConfig, "groupId", "flink-word-count");
+        setField(kafkaConfig, "transactionsTopic", "transactions-input");
+        setField(kafkaConfig, "fraudAlertsTopic", "fraud-alerts");
+        setField(kafkaConfig, "userEventsTopic", "user-events");
+        setField(kafkaConfig, "sessionSummariesTopic", "session-summaries");
         flinkJobService = new FlinkJobService(flinkConfig, kafkaConfig);
     }
 
@@ -56,6 +60,18 @@ class FlinkJobServiceTest {
     void submitKafkaWordCountJobFailsWithoutJar() {
         String result = flinkJobService.submitKafkaWordCountJob(10);
         assertThat(result).startsWith("Kafka job submission failed");
+    }
+
+    @Test
+    void submitFraudDetectionJobFailsWithoutJar() {
+        String result = flinkJobService.submitFraudDetectionJob();
+        assertThat(result).startsWith("Fraud Detection job submission failed");
+    }
+
+    @Test
+    void submitUserSessionJobFailsWithoutJar() {
+        String result = flinkJobService.submitUserSessionJob();
+        assertThat(result).startsWith("User Session job submission failed");
     }
 
     @Test

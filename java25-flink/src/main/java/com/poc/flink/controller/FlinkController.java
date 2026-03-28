@@ -74,6 +74,18 @@ public class FlinkController {
         return ResponseEntity.ok(result);
     }
 
+    @PostMapping("/jobs/user-session")
+    public ResponseEntity<String> submitUserSession() {
+        String result = flinkJobService.submitUserSessionJob();
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/jobs/user-session/local")
+    public ResponseEntity<String> runUserSessionLocal() {
+        String result = flinkJobService.runUserSessionLocally();
+        return ResponseEntity.ok(result);
+    }
+
     @PostMapping("/jobs/fraud-detection")
     public ResponseEntity<String> submitFraudDetection() {
         String result = flinkJobService.submitFraudDetectionJob();
