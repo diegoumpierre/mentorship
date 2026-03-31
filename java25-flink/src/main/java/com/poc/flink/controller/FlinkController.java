@@ -86,6 +86,18 @@ public class FlinkController {
         return ResponseEntity.ok(result);
     }
 
+    @PostMapping("/jobs/event-validation")
+    public ResponseEntity<String> submitEventValidation() {
+        String result = flinkJobService.submitEventValidationJob();
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/jobs/event-validation/local")
+    public ResponseEntity<String> runEventValidationLocal() {
+        String result = flinkJobService.runEventValidationLocally();
+        return ResponseEntity.ok(result);
+    }
+
     @PostMapping("/jobs/fraud-detection")
     public ResponseEntity<String> submitFraudDetection() {
         String result = flinkJobService.submitFraudDetectionJob();

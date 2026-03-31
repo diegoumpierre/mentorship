@@ -30,4 +30,13 @@ public class KafkaConfig {
 
     @Value("${kafka.session-summaries-topic}")
     private String sessionSummariesTopic;
+
+    @Value("${kafka.raw-events-topic}")
+    private String rawEventsTopic;
+
+    @Value("${kafka.valid-events-topic}")
+    private String validEventsTopic;
+
+    @Value("${kafka.dead-letter-topic}")
+    private String deadLetterTopic;
 }

@@ -23,6 +23,9 @@ kafka:
   fraud-alerts-topic: fraud-alerts
   user-events-topic: user-events
   session-summaries-topic: session-summaries
+  raw-events-topic: raw-events
+  valid-events-topic: valid-events
+  dead-letter-topic: dead-letter-queue
 
 management:
   endpoints:

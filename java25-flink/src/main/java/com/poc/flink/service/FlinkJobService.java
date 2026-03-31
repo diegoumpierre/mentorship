@@ -2,6 +2,7 @@ package com.poc.flink.service;
 
 import com.poc.flink.config.FlinkConfig;
 import com.poc.flink.config.KafkaConfig;
+import com.poc.flink.job.EventValidationJob;
 import com.poc.flink.job.FraudDetectionJob;
 import com.poc.flink.job.KafkaWordCountJob;
 import com.poc.flink.job.UserSessionJob;
@@ -151,6 +152,37 @@ public class FlinkJobService {
         }
     }
 
+    public String runEventValidationLocally() {
+        try {
+            StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+            env.setParallelism(1);
+            log.info("Running Event Validation locally - reading from " + kafkaConfig.getRawEventsTopic()
+                    + ", valid to " + kafkaConfig.getValidEventsTopic()
+                    + ", invalid to " + kafkaConfig.getDeadLetterTopic());
+            EventValidationJob.execute(env,
+                    kafkaConfig.getBootstrapServers(),
+                    kafkaConfig.getRawEventsTopic(),
+                    kafkaConfig.getValidEventsTopic(),
+                    kafkaConfig.getDeadLetterTopic(),
+                    "event-validation");
+            return "Event Validation job started";
+        } catch (Exception e) {
+            log.severe("Event Validation job failed: " + e.getMessage());
+            return "Event Validation job failed: " + e.getMessage();
+        }
+    }
+
+    public String submitEventValidationJob() {
+        try {
+            String jarId = uploadJar();
+            log.info("JAR uploaded, id: " + jarId);
+            return runEventValidationJar(jarId);
+        } catch (Exception e) {
+            log.severe("Event Validation job submission failed: " + e.getMessage());
+            return "Event Validation job submission failed: " + e.getMessage();
+        }
+    }
+
     public String submitFraudDetectionJob() {
         try {
             String jarId = uploadJar();
@@ -209,6 +241,25 @@ public class FlinkJobService {
                 flinkConfig.getRestUrl() + "/jars/" + jarId + "/run", body, Map.class);
 
         return "User Session job submitted successfully, jobId: " + response.get("jobid");
+    }
+
+    @SuppressWarnings("unchecked")
+    private String runEventValidationJar(String jarId) {
+        Map<String, Object> body = Map.of(
+                "entryClass", "com.poc.flink.job.EventValidationJob",
+                "programArgsList", List.of(
+                        kafkaConfig.getBootstrapServers(),
+                        kafkaConfig.getRawEventsTopic(),
+                        kafkaConfig.getValidEventsTopic(),
+                        kafkaConfig.getDeadLetterTopic(),
+                        "event-validation"
+                )
+        );
+
+        Map<String, Object> response = restTemplate.postForObject(
+                flinkConfig.getRestUrl() + "/jars/" + jarId + "/run", body, Map.class);
+
+        return "Event Validation job submitted successfully, jobId: " + response.get("jobid");
     }
 
     @SuppressWarnings("unchecked")
