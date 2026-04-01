@@ -107,6 +107,24 @@ class FlinkControllerTest {
     }
 
     @Test
+    void submitEventValidationReturnsResult() {
+        stubService.eventValidationResult = "Event Validation job submitted successfully, jobId: ev123";
+
+        ResponseEntity<String> response = controller.submitEventValidation();
+
+        assertThat(response.getBody()).isEqualTo("Event Validation job submitted successfully, jobId: ev123");
+    }
+
+    @Test
+    void runEventValidationLocalReturnsResult() {
+        stubService.eventValidationLocalResult = "Event Validation job started";
+
+        ResponseEntity<String> response = controller.runEventValidationLocal();
+
+        assertThat(response.getBody()).isEqualTo("Event Validation job started");
+    }
+
+    @Test
     void submitFraudDetectionReturnsResult() {
         stubService.fraudDetectionResult = "Fraud Detection job submitted successfully, jobId: fraud123";
 
@@ -150,6 +168,8 @@ class FlinkControllerTest {
         String windowedLocalResult = "";
         String kafkaResult = "";
         String kafkaLocalResult = "";
+        String eventValidationResult = "";
+        String eventValidationLocalResult = "";
         String fraudDetectionResult = "";
         String fraudDetectionLocalResult = "";
         String userSessionResult = "";
@@ -191,6 +211,16 @@ class FlinkControllerTest {
         @Override
         public String runKafkaWordCountLocally(int windowSeconds) {
             return kafkaLocalResult;
+        }
+
+        @Override
+        public String submitEventValidationJob() {
+            return eventValidationResult;
+        }
+
+        @Override
+        public String runEventValidationLocally() {
+            return eventValidationLocalResult;
         }
 
         @Override

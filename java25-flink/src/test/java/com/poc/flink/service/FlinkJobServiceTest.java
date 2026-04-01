@@ -29,6 +29,9 @@ class FlinkJobServiceTest {
         setField(kafkaConfig, "fraudAlertsTopic", "fraud-alerts");
         setField(kafkaConfig, "userEventsTopic", "user-events");
         setField(kafkaConfig, "sessionSummariesTopic", "session-summaries");
+        setField(kafkaConfig, "rawEventsTopic", "raw-events");
+        setField(kafkaConfig, "validEventsTopic", "valid-events");
+        setField(kafkaConfig, "deadLetterTopic", "dead-letter-queue");
         flinkJobService = new FlinkJobService(flinkConfig, kafkaConfig);
     }
 
@@ -60,6 +63,12 @@ class FlinkJobServiceTest {
     void submitKafkaWordCountJobFailsWithoutJar() {
         String result = flinkJobService.submitKafkaWordCountJob(10);
         assertThat(result).startsWith("Kafka job submission failed");
+    }
+
+    @Test
+    void submitEventValidationJobFailsWithoutJar() {
+        String result = flinkJobService.submitEventValidationJob();
+        assertThat(result).startsWith("Event Validation job submission failed");
     }
 
     @Test
