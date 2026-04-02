@@ -3,6 +3,7 @@ package com.poc.flink.service;
 import com.poc.flink.config.FlinkConfig;
 import com.poc.flink.config.KafkaConfig;
 import com.poc.flink.job.EventValidationJob;
+import com.poc.flink.job.SqlWordCountJob;
 import com.poc.flink.job.FraudDetectionJob;
 import com.poc.flink.job.KafkaWordCountJob;
 import com.poc.flink.job.UserSessionJob;
@@ -152,6 +153,34 @@ public class FlinkJobService {
         }
     }
 
+    public String runSqlWordCountLocally(int windowSeconds) {
+        try {
+            StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+            env.setParallelism(1);
+            log.info("Running SQL Word Count locally - reading from " + kafkaConfig.getInputTopic());
+            SqlWordCountJob.executeKafka(env,
+                    kafkaConfig.getBootstrapServers(),
+                    kafkaConfig.getInputTopic(),
+                    kafkaConfig.getGroupId(),
+                    windowSeconds);
+            return "SQL Word Count job started";
+        } catch (Exception e) {
+            log.severe("SQL Word Count job failed: " + e.getMessage());
+            return "SQL Word Count job failed: " + e.getMessage();
+        }
+    }
+
+    public String submitSqlWordCountJob(int windowSeconds) {
+        try {
+            String jarId = uploadJar();
+            log.info("JAR uploaded, id: " + jarId);
+            return runSqlWordCountJar(jarId, windowSeconds);
+        } catch (Exception e) {
+            log.severe("SQL Word Count job submission failed: " + e.getMessage());
+            return "SQL Word Count job submission failed: " + e.getMessage();
+        }
+    }
+
     public String runEventValidationLocally() {
         try {
             StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -260,6 +289,24 @@ public class FlinkJobService {
                 flinkConfig.getRestUrl() + "/jars/" + jarId + "/run", body, Map.class);
 
         return "Event Validation job submitted successfully, jobId: " + response.get("jobid");
+    }
+
+    @SuppressWarnings("unchecked")
+    private String runSqlWordCountJar(String jarId, int windowSeconds) {
+        Map<String, Object> body = Map.of(
+                "entryClass", "com.poc.flink.job.SqlWordCountJob",
+                "programArgsList", List.of(
+                        kafkaConfig.getBootstrapServers(),
+                        kafkaConfig.getInputTopic(),
+                        kafkaConfig.getGroupId(),
+                        String.valueOf(windowSeconds)
+                )
+        );
+
+        Map<String, Object> response = restTemplate.postForObject(
+                flinkConfig.getRestUrl() + "/jars/" + jarId + "/run", body, Map.class);
+
+        return "SQL Word Count job submitted successfully, jobId: " + response.get("jobid");
     }
 
     @SuppressWarnings("unchecked")
