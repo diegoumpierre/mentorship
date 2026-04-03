@@ -66,6 +66,12 @@ class FlinkJobServiceTest {
     }
 
     @Test
+    void submitSqlWordCountJobFailsWithoutJar() {
+        String result = flinkJobService.submitSqlWordCountJob(10);
+        assertThat(result).startsWith("SQL Word Count job submission failed");
+    }
+
+    @Test
     void submitEventValidationJobFailsWithoutJar() {
         String result = flinkJobService.submitEventValidationJob();
         assertThat(result).startsWith("Event Validation job submission failed");

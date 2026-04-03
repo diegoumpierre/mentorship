@@ -107,6 +107,24 @@ class FlinkControllerTest {
     }
 
     @Test
+    void submitSqlWordCountReturnsResult() {
+        stubService.sqlWordCountResult = "SQL Word Count job submitted successfully, jobId: sql123";
+
+        ResponseEntity<String> response = controller.submitSqlWordCount(Map.of("windowSeconds", "10"));
+
+        assertThat(response.getBody()).isEqualTo("SQL Word Count job submitted successfully, jobId: sql123");
+    }
+
+    @Test
+    void runSqlWordCountLocalReturnsResult() {
+        stubService.sqlWordCountLocalResult = "SQL Word Count job started";
+
+        ResponseEntity<String> response = controller.runSqlWordCountLocal(Map.of("windowSeconds", "10"));
+
+        assertThat(response.getBody()).isEqualTo("SQL Word Count job started");
+    }
+
+    @Test
     void submitEventValidationReturnsResult() {
         stubService.eventValidationResult = "Event Validation job submitted successfully, jobId: ev123";
 
@@ -168,6 +186,8 @@ class FlinkControllerTest {
         String windowedLocalResult = "";
         String kafkaResult = "";
         String kafkaLocalResult = "";
+        String sqlWordCountResult = "";
+        String sqlWordCountLocalResult = "";
         String eventValidationResult = "";
         String eventValidationLocalResult = "";
         String fraudDetectionResult = "";
@@ -211,6 +231,16 @@ class FlinkControllerTest {
         @Override
         public String runKafkaWordCountLocally(int windowSeconds) {
             return kafkaLocalResult;
+        }
+
+        @Override
+        public String submitSqlWordCountJob(int windowSeconds) {
+            return sqlWordCountResult;
+        }
+
+        @Override
+        public String runSqlWordCountLocally(int windowSeconds) {
+            return sqlWordCountLocalResult;
         }
 
         @Override
