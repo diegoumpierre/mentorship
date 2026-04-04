@@ -67,7 +67,7 @@ public class FlinkJobService {
         try {
             String jarId = uploadJar();
             log.info("JAR uploaded, id: " + jarId);
-            return runJar(jarId, text);
+            return runWindowedWordCountJar(jarId, text, windowSeconds);
         } catch (Exception e) {
             log.severe("Job failed " + e.getMessage());
             return "Job failed " + e.getMessage();
@@ -327,6 +327,19 @@ public class FlinkJobService {
 
         String filename = (String) response.get("filename");
         return filename.substring(filename.lastIndexOf("/") + 1);
+    }
+
+    @SuppressWarnings("unchecked")
+    private String runWindowedWordCountJar(String jarId, String text, int windowSeconds) {
+        Map<String, Object> body = Map.of(
+                "entryClass", "com.poc.flink.job.WindowedWordCountJob",
+                "programArgsList", List.of(text, String.valueOf(windowSeconds))
+        );
+
+        Map<String, Object> response = restTemplate.postForObject(
+                flinkConfig.getRestUrl() + "/jars/" + jarId + "/run", body, Map.class);
+
+        return "Windowed Word Count job submitted successfully, jobId: " + response.get("jobid");
     }
 
     @SuppressWarnings("unchecked")

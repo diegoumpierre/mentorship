@@ -12,7 +12,7 @@ flink:
   rest:
     url: http://localhost:8081
   jar:
-    path: target/java25-flink-1.0-SNAPSHOT.jar
+    path: target/java25-flink-1.0-SNAPSHOT-flink.jar
 
 kafka:
   bootstrap-servers: localhost:9092
