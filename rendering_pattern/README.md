@@ -12,21 +12,23 @@ Five independent examples showing different rendering strategies, all with the s
 
 ## Quick start
 
+Cada pasta `rp-*` é uma POC independente com seu próprio README, `package.json` e código. O prefixo `rp-` (rendering pattern) mantém todas agrupadas.
+
 ```bash
 # CSR — just open the file
-open csr/index.html
+open rp-csr/index.html
 
 # SSG — build then open
-cd ssg && npm run build && open dist/index.html && cd ..
+cd rp-ssg && npm run build && open dist/index.html && cd ..
 
 # SSR
-cd ssr && npm install && npm start    # http://localhost:3001
+cd rp-ssr && npm install && npm start    # http://localhost:3001
 
 # ISR
-cd isr && npm install && npm start    # http://localhost:3002
+cd rp-isr && npm install && npm start    # http://localhost:3002
 
 # Island Architecture
-cd island-architecture && npm install && npm start   # http://localhost:3003
+cd rp-island-architecture && npm install && npm start   # http://localhost:3003
 ```
 
 ## What to pay attention to
