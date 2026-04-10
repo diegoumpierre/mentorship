@@ -12,14 +12,14 @@
 
 ## TODO
 
-- [ ] set up persistence — h2
-- [ ] implement `buyTicket` in `ShowServiceImpl`
-- [ ] make `listAllShow` return real data 
+- [x] set up persistence — h2
+- [x] implement `buyTicket` in `ShowServiceImpl`
+- [x] make `listAllShow` return real data 
 - [ ] finish `reserveASeat` — reservation TTL
 - [ ] controller endpoints (list shows, pick a seat, buy)
 - [ ] concurrency 
-  - [] Need to pick between pessimistic locking
-  - [] optimistic locking with @Version
-  - [] Can't let two people buy the same seat
+  - [ ] Need to pick between pessimistic locking
+  - [ ] optimistic locking with @Version
+  - [ ] Can't let two people buy the same seat
 - [ ] validate the venue's max capacity before selling
 - [ ] Tests for all

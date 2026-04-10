@@ -2,6 +2,7 @@ package com.poc.ticketsystem.service;
 
 import com.poc.ticketsystem.dto.ShowSelected;
 import com.poc.ticketsystem.model.Seat;
+import com.poc.ticketsystem.model.Show;
 import com.poc.ticketsystem.model.User;
 import com.poc.ticketsystem.repository.SeatRepository;
 import com.poc.ticketsystem.repository.ShowRepository;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -56,7 +58,26 @@ class ShowServiceImplTest {
     }
 
     @Test
-    void listAllShow_retornaListaVazia_porEnquanto() {
+    void listAllShow_retornaTudoDoRepo() {
+        Show s1 = new Show();
+        s1.setId(1L);
+        s1.setName("Metallica");
+        Show s2 = new Show();
+        s2.setId(2L);
+        s2.setName("Iron Maiden");
+        when(showRepository.findAll()).thenReturn(List.of(s1, s2));
+
+        List<Show> result = service.listAllShow();
+
+        assertEquals(2, result.size());
+        assertEquals("Metallica", result.get(0).getName());
+        assertEquals("Iron Maiden", result.get(1).getName());
+        verify(showRepository).findAll();
+    }
+
+    @Test
+    void listAllShow_quandoNaoTemNada_retornaVazio() {
+        when(showRepository.findAll()).thenReturn(List.of());
         assertTrue(service.listAllShow().isEmpty());
     }
 
