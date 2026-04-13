@@ -18,7 +18,7 @@
 - [x] finish `reserveASeat` — reservation TTL
 - [x] controller endpoints (list shows, pick a seat, buy)
 - [ ] concurrency 
-  - [ ] Need to pick between pessimistic locking
+  - [x] Need to pick between pessimistic locking
   - [ ] optimistic locking with @Version
   - [ ] Can't let two people buy the same seat
 - [ ] validate the venue's max capacity before selling

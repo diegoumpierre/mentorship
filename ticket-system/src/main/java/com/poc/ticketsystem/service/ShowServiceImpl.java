@@ -7,6 +7,7 @@ import com.poc.ticketsystem.model.User;
 import com.poc.ticketsystem.repository.SeatRepository;
 import com.poc.ticketsystem.repository.ShowRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -34,6 +35,7 @@ public class ShowServiceImpl implements ShowService {
     }
 
     @Override
+    @Transactional
     public boolean buyTicket(User user, ShowSelected showSelected) {
         if (user == null || showSelected == null || showSelected.getSeat() == null) {
             return false;
@@ -45,7 +47,7 @@ public class ShowServiceImpl implements ShowService {
         }
 
         // pega o assento do banco pra não confiar no que veio do request
-        Seat seat = seatRepository.findById(picked.getId()).orElse(null);
+        Seat seat = seatRepository.findByIdForUpdate(picked.getId()).orElse(null);
         if (seat == null) {
             return false;
         }
@@ -68,12 +70,13 @@ public class ShowServiceImpl implements ShowService {
     }
 
     @Override
+    @Transactional
     public boolean reserveASeat(User user, Long seatId) {
         if (user == null || user.getId() == null || seatId == null) {
             return false;
         }
 
-        Seat seat = seatRepository.findById(seatId).orElse(null);
+        Seat seat = seatRepository.findByIdForUpdate(seatId).orElse(null);
         if (seat == null || seat.isSold()) {
             return false;
         }

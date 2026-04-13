@@ -111,7 +111,7 @@ class ShowServiceImplTest {
     @Test
     void buyTicket_compraComSucesso() {
         Seat seat = aSeat(42L, false);
-        when(seatRepository.findById(42L)).thenReturn(Optional.of(seat));
+        when(seatRepository.findByIdForUpdate(42L)).thenReturn(Optional.of(seat));
 
         boolean ok = service.buyTicket(aUser(), withSeat(aSeat(42L, false)));
 
@@ -126,7 +126,7 @@ class ShowServiceImplTest {
     @Test
     void buyTicket_falhaQuandoAssentoJaVendido() {
         Seat jaVendido = aSeat(7L, true);
-        when(seatRepository.findById(7L)).thenReturn(Optional.of(jaVendido));
+        when(seatRepository.findByIdForUpdate(7L)).thenReturn(Optional.of(jaVendido));
 
         boolean ok = service.buyTicket(aUser(), withSeat(aSeat(7L, true)));
 
@@ -136,7 +136,7 @@ class ShowServiceImplTest {
 
     @Test
     void buyTicket_falhaQuandoAssentoNaoExiste() {
-        when(seatRepository.findById(99L)).thenReturn(Optional.empty());
+        when(seatRepository.findByIdForUpdate(99L)).thenReturn(Optional.empty());
 
         boolean ok = service.buyTicket(aUser(), withSeat(aSeat(99L, false)));
 
@@ -175,7 +175,7 @@ class ShowServiceImplTest {
         Seat seat = aSeat(11L, false);
         seat.setReservedBy(anotherUser());
         seat.setReservedUntil(now().plusMinutes(2));
-        when(seatRepository.findById(11L)).thenReturn(Optional.of(seat));
+        when(seatRepository.findByIdForUpdate(11L)).thenReturn(Optional.of(seat));
 
         boolean ok = service.buyTicket(aUser(), withSeat(aSeat(11L, false)));
 
@@ -188,7 +188,7 @@ class ShowServiceImplTest {
         Seat seat = aSeat(12L, false);
         seat.setReservedBy(aUser());
         seat.setReservedUntil(now().plusMinutes(2));
-        when(seatRepository.findById(12L)).thenReturn(Optional.of(seat));
+        when(seatRepository.findByIdForUpdate(12L)).thenReturn(Optional.of(seat));
 
         boolean ok = service.buyTicket(aUser(), withSeat(aSeat(12L, false)));
 
@@ -206,7 +206,7 @@ class ShowServiceImplTest {
         Seat seat = aSeat(13L, false);
         seat.setReservedBy(anotherUser());
         seat.setReservedUntil(now().minusSeconds(1));
-        when(seatRepository.findById(13L)).thenReturn(Optional.of(seat));
+        when(seatRepository.findByIdForUpdate(13L)).thenReturn(Optional.of(seat));
 
         boolean ok = service.buyTicket(aUser(), withSeat(aSeat(13L, false)));
 
@@ -216,7 +216,7 @@ class ShowServiceImplTest {
     @Test
     void reserveASeat_reservaComSucessoEgravaTTL() {
         Seat seat = aSeat(50L, false);
-        when(seatRepository.findById(50L)).thenReturn(Optional.of(seat));
+        when(seatRepository.findByIdForUpdate(50L)).thenReturn(Optional.of(seat));
 
         boolean ok = service.reserveASeat(aUser(), 50L);
 
@@ -243,7 +243,7 @@ class ShowServiceImplTest {
 
     @Test
     void reserveASeat_falhaQuandoSeatNaoExiste() {
-        when(seatRepository.findById(404L)).thenReturn(Optional.empty());
+        when(seatRepository.findByIdForUpdate(404L)).thenReturn(Optional.empty());
         assertFalse(service.reserveASeat(aUser(), 404L));
         verify(seatRepository, never()).save(any());
     }
@@ -251,7 +251,7 @@ class ShowServiceImplTest {
     @Test
     void reserveASeat_falhaQuandoJaVendido() {
         Seat vendido = aSeat(60L, true);
-        when(seatRepository.findById(60L)).thenReturn(Optional.of(vendido));
+        when(seatRepository.findByIdForUpdate(60L)).thenReturn(Optional.of(vendido));
 
         assertFalse(service.reserveASeat(aUser(), 60L));
         verify(seatRepository, never()).save(any());
@@ -262,7 +262,7 @@ class ShowServiceImplTest {
         Seat seat = aSeat(61L, false);
         seat.setReservedBy(anotherUser());
         seat.setReservedUntil(now().plusMinutes(3));
-        when(seatRepository.findById(61L)).thenReturn(Optional.of(seat));
+        when(seatRepository.findByIdForUpdate(61L)).thenReturn(Optional.of(seat));
 
         assertFalse(service.reserveASeat(aUser(), 61L));
         verify(seatRepository, never()).save(any());
@@ -273,7 +273,7 @@ class ShowServiceImplTest {
         Seat seat = aSeat(62L, false);
         seat.setReservedBy(aUser());
         seat.setReservedUntil(now().plusMinutes(1));
-        when(seatRepository.findById(62L)).thenReturn(Optional.of(seat));
+        when(seatRepository.findByIdForUpdate(62L)).thenReturn(Optional.of(seat));
 
         boolean ok = service.reserveASeat(aUser(), 62L);
 
@@ -288,7 +288,7 @@ class ShowServiceImplTest {
         Seat seat = aSeat(63L, false);
         seat.setReservedBy(anotherUser());
         seat.setReservedUntil(now().minusMinutes(1));
-        when(seatRepository.findById(63L)).thenReturn(Optional.of(seat));
+        when(seatRepository.findByIdForUpdate(63L)).thenReturn(Optional.of(seat));
 
         boolean ok = service.reserveASeat(aUser(), 63L);
 
