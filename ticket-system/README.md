@@ -15,7 +15,7 @@
 - [x] set up persistence — h2
 - [x] implement `buyTicket` in `ShowServiceImpl`
 - [x] make `listAllShow` return real data 
-- [ ] finish `reserveASeat` — reservation TTL
+- [x] finish `reserveASeat` — reservation TTL
 - [ ] controller endpoints (list shows, pick a seat, buy)
 - [ ] concurrency 
   - [ ] Need to pick between pessimistic locking

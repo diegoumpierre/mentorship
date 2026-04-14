@@ -70,3 +70,8 @@ INSERT INTO tb_seat (id, sold, number, zone_id, show_id, version) VALUES (1, FAL
 INSERT INTO tb_seat (id, sold, number, zone_id, show_id, version) VALUES (2, FALSE, 2, 1, 1, 0);
 INSERT INTO tb_seat (id, sold, number, zone_id, show_id, version) VALUES (3, FALSE, 1, 2, 1, 0);
 INSERT INTO tb_seat (id, sold, number, zone_id, show_id, user_id, version) VALUES (4, TRUE, 2, 2, 1, 2, 1);
+
+--changeset diego:011-add-seat-reservation
+ALTER TABLE tb_seat ADD COLUMN reserved_by_user_id BIGINT;
+ALTER TABLE tb_seat ADD COLUMN reserved_until TIMESTAMP;
+ALTER TABLE tb_seat ADD CONSTRAINT fk_seat_reserved_by FOREIGN KEY (reserved_by_user_id) REFERENCES tb_user(id);

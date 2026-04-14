@@ -10,6 +10,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "tb_seat")
 public class Seat {
@@ -36,6 +38,13 @@ public class Seat {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "reserved_by_user_id")
+    private User reservedBy;
+
+    @Column(name = "reserved_until")
+    private LocalDateTime reservedUntil;
 
     @Version
     @Column(name = "version")
@@ -95,5 +104,21 @@ public class Seat {
 
     public void setVersion(Long version) {
         this.version = version;
+    }
+
+    public User getReservedBy() {
+        return reservedBy;
+    }
+
+    public void setReservedBy(User reservedBy) {
+        this.reservedBy = reservedBy;
+    }
+
+    public LocalDateTime getReservedUntil() {
+        return reservedUntil;
+    }
+
+    public void setReservedUntil(LocalDateTime reservedUntil) {
+        this.reservedUntil = reservedUntil;
     }
 }

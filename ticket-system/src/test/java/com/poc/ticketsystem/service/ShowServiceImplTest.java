@@ -10,11 +10,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -24,15 +30,19 @@ import static org.mockito.Mockito.when;
 
 class ShowServiceImplTest {
 
+    private static final Instant FIXED_NOW = Instant.parse("2026-04-15T12:00:00Z");
+
     private SeatRepository seatRepository;
     private ShowRepository showRepository;
+    private Clock clock;
     private ShowServiceImpl service;
 
     @BeforeEach
     void setUp() {
         seatRepository = mock(SeatRepository.class);
         showRepository = mock(ShowRepository.class);
-        service = new ShowServiceImpl(showRepository, seatRepository);
+        clock = Clock.fixed(FIXED_NOW, ZoneId.of("UTC"));
+        service = new ShowServiceImpl(showRepository, seatRepository, clock);
     }
 
     private User aUser() {
@@ -40,6 +50,14 @@ class ShowServiceImplTest {
         u.setId(1L);
         u.setName("diego");
         u.setEmail("diego@test.com");
+        return u;
+    }
+
+    private User anotherUser() {
+        User u = new User();
+        u.setId(2L);
+        u.setName("ana");
+        u.setEmail("ana@test.com");
         return u;
     }
 
@@ -55,6 +73,10 @@ class ShowServiceImplTest {
         ShowSelected sel = new ShowSelected();
         sel.setSeat(seat);
         return sel;
+    }
+
+    private LocalDateTime now() {
+        return LocalDateTime.now(clock);
     }
 
     @Test
@@ -82,13 +104,8 @@ class ShowServiceImplTest {
     }
 
     @Test
-    void reserveASeat_aindaNaoImplementado() {
-        assertFalse(service.reserveASeat());
-    }
-
-    @Test
     void findById_retornaNull_porEnquanto() {
-        assertEquals(null, service.findById("1"));
+        assertNull(service.findById("1"));
     }
 
     @Test
@@ -151,5 +168,133 @@ class ShowServiceImplTest {
         Seat semId = new Seat();
         assertFalse(service.buyTicket(aUser(), withSeat(semId)));
         verify(seatRepository, never()).save(any());
+    }
+
+    @Test
+    void buyTicket_bloqueadoPorReservaAtivaDeOutroUser() {
+        Seat seat = aSeat(11L, false);
+        seat.setReservedBy(anotherUser());
+        seat.setReservedUntil(now().plusMinutes(2));
+        when(seatRepository.findById(11L)).thenReturn(Optional.of(seat));
+
+        boolean ok = service.buyTicket(aUser(), withSeat(aSeat(11L, false)));
+
+        assertFalse(ok);
+        verify(seatRepository, never()).save(any());
+    }
+
+    @Test
+    void buyTicket_oUserDaReservaConsegueComprar() {
+        Seat seat = aSeat(12L, false);
+        seat.setReservedBy(aUser());
+        seat.setReservedUntil(now().plusMinutes(2));
+        when(seatRepository.findById(12L)).thenReturn(Optional.of(seat));
+
+        boolean ok = service.buyTicket(aUser(), withSeat(aSeat(12L, false)));
+
+        assertTrue(ok);
+        ArgumentCaptor<Seat> captor = ArgumentCaptor.forClass(Seat.class);
+        verify(seatRepository).save(captor.capture());
+        Seat saved = captor.getValue();
+        assertTrue(saved.isSold());
+        assertNull(saved.getReservedBy());
+        assertNull(saved.getReservedUntil());
+    }
+
+    @Test
+    void buyTicket_reservaExpiradaNaoBloqueia() {
+        Seat seat = aSeat(13L, false);
+        seat.setReservedBy(anotherUser());
+        seat.setReservedUntil(now().minusSeconds(1));
+        when(seatRepository.findById(13L)).thenReturn(Optional.of(seat));
+
+        boolean ok = service.buyTicket(aUser(), withSeat(aSeat(13L, false)));
+
+        assertTrue(ok);
+    }
+
+    @Test
+    void reserveASeat_reservaComSucessoEgravaTTL() {
+        Seat seat = aSeat(50L, false);
+        when(seatRepository.findById(50L)).thenReturn(Optional.of(seat));
+
+        boolean ok = service.reserveASeat(aUser(), 50L);
+
+        assertTrue(ok);
+        ArgumentCaptor<Seat> captor = ArgumentCaptor.forClass(Seat.class);
+        verify(seatRepository).save(captor.capture());
+        Seat saved = captor.getValue();
+        assertEquals(1L, saved.getReservedBy().getId());
+        assertNotNull(saved.getReservedUntil());
+        assertEquals(now().plus(ShowServiceImpl.RESERVATION_TTL), saved.getReservedUntil());
+    }
+
+    @Test
+    void reserveASeat_falhaQuandoUserNull() {
+        assertFalse(service.reserveASeat(null, 1L));
+        verify(seatRepository, never()).save(any());
+    }
+
+    @Test
+    void reserveASeat_falhaQuandoSeatIdNull() {
+        assertFalse(service.reserveASeat(aUser(), null));
+        verify(seatRepository, never()).save(any());
+    }
+
+    @Test
+    void reserveASeat_falhaQuandoSeatNaoExiste() {
+        when(seatRepository.findById(404L)).thenReturn(Optional.empty());
+        assertFalse(service.reserveASeat(aUser(), 404L));
+        verify(seatRepository, never()).save(any());
+    }
+
+    @Test
+    void reserveASeat_falhaQuandoJaVendido() {
+        Seat vendido = aSeat(60L, true);
+        when(seatRepository.findById(60L)).thenReturn(Optional.of(vendido));
+
+        assertFalse(service.reserveASeat(aUser(), 60L));
+        verify(seatRepository, never()).save(any());
+    }
+
+    @Test
+    void reserveASeat_falhaQuandoReservadoPorOutro() {
+        Seat seat = aSeat(61L, false);
+        seat.setReservedBy(anotherUser());
+        seat.setReservedUntil(now().plusMinutes(3));
+        when(seatRepository.findById(61L)).thenReturn(Optional.of(seat));
+
+        assertFalse(service.reserveASeat(aUser(), 61L));
+        verify(seatRepository, never()).save(any());
+    }
+
+    @Test
+    void reserveASeat_permiteRenovarQuandoOMesmoUserJaTinhaReservado() {
+        Seat seat = aSeat(62L, false);
+        seat.setReservedBy(aUser());
+        seat.setReservedUntil(now().plusMinutes(1));
+        when(seatRepository.findById(62L)).thenReturn(Optional.of(seat));
+
+        boolean ok = service.reserveASeat(aUser(), 62L);
+
+        assertTrue(ok);
+        ArgumentCaptor<Seat> captor = ArgumentCaptor.forClass(Seat.class);
+        verify(seatRepository).save(captor.capture());
+        assertEquals(now().plus(ShowServiceImpl.RESERVATION_TTL), captor.getValue().getReservedUntil());
+    }
+
+    @Test
+    void reserveASeat_permiteReservarSeReservaAntigaExpirou() {
+        Seat seat = aSeat(63L, false);
+        seat.setReservedBy(anotherUser());
+        seat.setReservedUntil(now().minusMinutes(1));
+        when(seatRepository.findById(63L)).thenReturn(Optional.of(seat));
+
+        boolean ok = service.reserveASeat(aUser(), 63L);
+
+        assertTrue(ok);
+        ArgumentCaptor<Seat> captor = ArgumentCaptor.forClass(Seat.class);
+        verify(seatRepository).save(captor.capture());
+        assertEquals(1L, captor.getValue().getReservedBy().getId());
     }
 }
