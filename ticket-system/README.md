@@ -16,7 +16,7 @@
 - [x] implement `buyTicket` in `ShowServiceImpl`
 - [x] make `listAllShow` return real data 
 - [x] finish `reserveASeat` — reservation TTL
-- [ ] controller endpoints (list shows, pick a seat, buy)
+- [x] controller endpoints (list shows, pick a seat, buy)
 - [ ] concurrency 
   - [ ] Need to pick between pessimistic locking
   - [ ] optimistic locking with @Version
