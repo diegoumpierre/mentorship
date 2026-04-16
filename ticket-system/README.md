@@ -19,7 +19,7 @@
 - [x] controller endpoints (list shows, pick a seat, buy)
 - [ ] concurrency 
   - [x] Need to pick between pessimistic locking
-  - [ ] optimistic locking with @Version
+  - [x] optimistic locking with @Version
   - [ ] Can't let two people buy the same seat
 - [ ] validate the venue's max capacity before selling
 - [ ] Tests for all

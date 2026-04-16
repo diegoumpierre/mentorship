@@ -6,6 +6,7 @@ import com.poc.ticketsystem.model.Show;
 import com.poc.ticketsystem.model.User;
 import com.poc.ticketsystem.repository.SeatRepository;
 import com.poc.ticketsystem.repository.ShowRepository;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,13 +47,11 @@ public class ShowServiceImpl implements ShowService {
             return false;
         }
 
-        // pega o assento do banco pra não confiar no que veio do request
-        Seat seat = seatRepository.findByIdForUpdate(picked.getId()).orElse(null);
+        Seat seat = seatRepository.findById(picked.getId()).orElse(null);
         if (seat == null) {
             return false;
         }
 
-        // alguem já comprou
         if (seat.isSold()) {
             return false;
         }
@@ -65,8 +64,13 @@ public class ShowServiceImpl implements ShowService {
         seat.setUser(user);
         seat.setReservedBy(null);
         seat.setReservedUntil(null);
-        seatRepository.save(seat);
-        return true;
+
+        try {
+            seatRepository.save(seat);
+            return true;
+        } catch (ObjectOptimisticLockingFailureException e) {
+            return false;
+        }
     }
 
     @Override
@@ -76,7 +80,7 @@ public class ShowServiceImpl implements ShowService {
             return false;
         }
 
-        Seat seat = seatRepository.findByIdForUpdate(seatId).orElse(null);
+        Seat seat = seatRepository.findById(seatId).orElse(null);
         if (seat == null || seat.isSold()) {
             return false;
         }
@@ -87,8 +91,13 @@ public class ShowServiceImpl implements ShowService {
 
         seat.setReservedBy(user);
         seat.setReservedUntil(LocalDateTime.now(clock).plus(RESERVATION_TTL));
-        seatRepository.save(seat);
-        return true;
+
+        try {
+            seatRepository.save(seat);
+            return true;
+        } catch (ObjectOptimisticLockingFailureException e) {
+            return false;
+        }
     }
 
     @Override
