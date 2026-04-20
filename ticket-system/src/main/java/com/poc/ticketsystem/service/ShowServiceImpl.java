@@ -60,6 +60,13 @@ public class ShowServiceImpl implements ShowService {
             return false;
         }
 
+        if (seat.getShow() != null) {
+            long sold = seatRepository.countByShowIdAndSoldTrue(seat.getShow().getId());
+            if (sold >= seat.getShow().getMaximumCapacity()) {
+                return false;
+            }
+        }
+
         seat.setSold(true);
         seat.setUser(user);
         seat.setReservedBy(null);

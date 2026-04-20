@@ -21,5 +21,5 @@
   - [x] Need to pick between pessimistic locking
   - [x] optimistic locking with @Version
   - [x] Can't let two people buy the same seat
-- [ ] validate the venue's max capacity before selling
+- [x] validate the venue's max capacity before selling
 - [ ] Tests for all

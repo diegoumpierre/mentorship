@@ -4,6 +4,7 @@ import com.poc.ticketsystem.dto.ShowSelected;
 import com.poc.ticketsystem.model.Seat;
 import com.poc.ticketsystem.model.Show;
 import com.poc.ticketsystem.model.User;
+import com.poc.ticketsystem.model.Venue;
 import com.poc.ticketsystem.repository.SeatRepository;
 import com.poc.ticketsystem.repository.ShowRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,11 +64,25 @@ class ShowServiceImplTest {
         return u;
     }
 
+    private Show aShow(Long id, int maxCapacity) {
+        Show show = new Show();
+        show.setId(id);
+        show.setName("Show " + id);
+        show.setMaximumCapacity(maxCapacity);
+        return show;
+    }
+
     private Seat aSeat(Long id, boolean sold) {
         Seat s = new Seat();
         s.setId(id);
         s.setNumber(10);
         s.setSold(sold);
+        return s;
+    }
+
+    private Seat aSeatWithShow(Long id, boolean sold, Show show) {
+        Seat s = aSeat(id, sold);
+        s.setShow(show);
         return s;
     }
 
@@ -298,6 +313,32 @@ class ShowServiceImplTest {
         ArgumentCaptor<Seat> captor = ArgumentCaptor.forClass(Seat.class);
         verify(seatRepository).save(captor.capture());
         assertEquals(1L, captor.getValue().getReservedBy().getId());
+    }
+
+    @Test
+    void buyTicket_falhaQuandoCapacidadeMaximaAtingida() {
+        Show show = aShow(1L, 2);
+        Seat seat = aSeatWithShow(80L, false, show);
+        when(seatRepository.findById(80L)).thenReturn(Optional.of(seat));
+        when(seatRepository.countByShowIdAndSoldTrue(1L)).thenReturn(2L);
+
+        boolean ok = service.buyTicket(aUser(), withSeat(aSeat(80L, false)));
+
+        assertFalse(ok);
+        verify(seatRepository, never()).save(any());
+    }
+
+    @Test
+    void buyTicket_permiteQuandoCapacidadeNaoAtingida() {
+        Show show = aShow(1L, 4);
+        Seat seat = aSeatWithShow(81L, false, show);
+        when(seatRepository.findById(81L)).thenReturn(Optional.of(seat));
+        when(seatRepository.countByShowIdAndSoldTrue(1L)).thenReturn(2L);
+
+        boolean ok = service.buyTicket(aUser(), withSeat(aSeat(81L, false)));
+
+        assertTrue(ok);
+        verify(seatRepository).save(any());
     }
 
     @Test
