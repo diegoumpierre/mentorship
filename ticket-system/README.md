@@ -17,9 +17,9 @@
 - [x] make `listAllShow` return real data 
 - [x] finish `reserveASeat` — reservation TTL
 - [x] controller endpoints (list shows, pick a seat, buy)
-- [ ] concurrency 
+- [x] concurrency 
   - [x] Need to pick between pessimistic locking
   - [x] optimistic locking with @Version
   - [x] Can't let two people buy the same seat
 - [x] validate the venue's max capacity before selling
-- [ ] Tests for all
+- [x] Tests for all
