@@ -3,8 +3,8 @@ package com.poc.ticketsystem.service;
 import com.poc.ticketsystem.dto.ShowSelected;
 import com.poc.ticketsystem.model.Seat;
 import com.poc.ticketsystem.model.Show;
+import com.poc.ticketsystem.model.ShowDate;
 import com.poc.ticketsystem.model.User;
-import com.poc.ticketsystem.model.Venue;
 import com.poc.ticketsystem.repository.SeatRepository;
 import com.poc.ticketsystem.repository.ShowRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,12 +64,11 @@ class ShowServiceImplTest {
         return u;
     }
 
-    private Show aShow(Long id, int maxCapacity) {
-        Show show = new Show();
-        show.setId(id);
-        show.setName("Show " + id);
-        show.setMaximumCapacity(maxCapacity);
-        return show;
+    private ShowDate aShowDate(Long id, int capacity) {
+        ShowDate sd = new ShowDate();
+        sd.setId(id);
+        sd.setCapacity(capacity);
+        return sd;
     }
 
     private Seat aSeat(Long id, boolean sold) {
@@ -80,9 +79,9 @@ class ShowServiceImplTest {
         return s;
     }
 
-    private Seat aSeatWithShow(Long id, boolean sold, Show show) {
+    private Seat aSeatWithShowDate(Long id, boolean sold, ShowDate showDate) {
         Seat s = aSeat(id, sold);
-        s.setShow(show);
+        s.setShowDate(showDate);
         return s;
     }
 
@@ -317,10 +316,10 @@ class ShowServiceImplTest {
 
     @Test
     void buyTicket_falhaQuandoCapacidadeMaximaAtingida() {
-        Show show = aShow(1L, 2);
-        Seat seat = aSeatWithShow(80L, false, show);
+        ShowDate sd = aShowDate(1L, 2);
+        Seat seat = aSeatWithShowDate(80L, false, sd);
         when(seatRepository.findById(80L)).thenReturn(Optional.of(seat));
-        when(seatRepository.countByShowIdAndSoldTrue(1L)).thenReturn(2L);
+        when(seatRepository.countByShowDateIdAndSoldTrue(1L)).thenReturn(2L);
 
         boolean ok = service.buyTicket(aUser(), withSeat(aSeat(80L, false)));
 
@@ -330,12 +329,26 @@ class ShowServiceImplTest {
 
     @Test
     void buyTicket_permiteQuandoCapacidadeNaoAtingida() {
-        Show show = aShow(1L, 4);
-        Seat seat = aSeatWithShow(81L, false, show);
+        ShowDate sd = aShowDate(1L, 4);
+        Seat seat = aSeatWithShowDate(81L, false, sd);
         when(seatRepository.findById(81L)).thenReturn(Optional.of(seat));
-        when(seatRepository.countByShowIdAndSoldTrue(1L)).thenReturn(2L);
+        when(seatRepository.countByShowDateIdAndSoldTrue(1L)).thenReturn(2L);
 
         boolean ok = service.buyTicket(aUser(), withSeat(aSeat(81L, false)));
+
+        assertTrue(ok);
+        verify(seatRepository).save(any());
+    }
+
+    @Test
+    void buyTicket_capacidadePorShowDateNaoMistura() {
+        ShowDate sd = aShowDate(2L, 4);
+        Seat seat = aSeatWithShowDate(82L, false, sd);
+        when(seatRepository.findById(82L)).thenReturn(Optional.of(seat));
+        when(seatRepository.countByShowDateIdAndSoldTrue(2L)).thenReturn(1L);
+        when(seatRepository.countByShowDateIdAndSoldTrue(1L)).thenReturn(99L);
+
+        boolean ok = service.buyTicket(aUser(), withSeat(aSeat(82L, false)));
 
         assertTrue(ok);
         verify(seatRepository).save(any());

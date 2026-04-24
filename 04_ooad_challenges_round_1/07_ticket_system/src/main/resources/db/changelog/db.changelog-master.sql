@@ -109,3 +109,14 @@ CREATE TABLE tb_ticket (
     CONSTRAINT fk_ticket_order FOREIGN KEY (order_id) REFERENCES tb_order(id),
     CONSTRAINT fk_ticket_seat FOREIGN KEY (seat_id) REFERENCES tb_seat(id)
 );
+
+--changeset diego:016-seat-link-show-date
+ALTER TABLE tb_seat ADD COLUMN show_date_id BIGINT;
+UPDATE tb_seat SET show_date_id = (SELECT MIN(sd.id) FROM tb_show_date sd WHERE sd.show_id = tb_seat.show_id);
+ALTER TABLE tb_seat ADD CONSTRAINT fk_seat_show_date FOREIGN KEY (show_date_id) REFERENCES tb_show_date(id);
+ALTER TABLE tb_seat DROP CONSTRAINT fk_seat_show;
+ALTER TABLE tb_seat DROP COLUMN show_id;
+
+--changeset diego:017-show-drop-date-and-capacity
+ALTER TABLE tb_show DROP COLUMN maximum_capacity;
+ALTER TABLE tb_show DROP COLUMN date;

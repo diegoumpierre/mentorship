@@ -9,8 +9,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Table(name = "tb_show")
 public class Show {
@@ -23,15 +21,9 @@ public class Show {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "maximum_capacity")
-    private int maximumCapacity;
-
     @ManyToOne
     @JoinColumn(name = "venue_id")
     private Venue venue;
-
-    @Column(name = "date")
-    private LocalDateTime date;
 
     public Long getId() {
         return id;
@@ -49,27 +41,11 @@ public class Show {
         this.name = name;
     }
 
-    public int getMaximumCapacity() {
-        return maximumCapacity;
-    }
-
-    public void setMaximumCapacity(int maximumCapacity) {
-        this.maximumCapacity = maximumCapacity;
-    }
-
     public Venue getVenue() {
         return venue;
     }
 
     public void setVenue(Venue venue) {
         this.venue = venue;
-    }
-
-    public LocalDateTime getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDateTime date) {
-        this.date = date;
     }
 }

@@ -32,8 +32,8 @@ public class Seat {
     private Zone zone;
 
     @ManyToOne
-    @JoinColumn(name = "show_id")
-    private Show show;
+    @JoinColumn(name = "show_date_id")
+    private ShowDate showDate;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -82,12 +82,12 @@ public class Seat {
         this.zone = zone;
     }
 
-    public Show getShow() {
-        return show;
+    public ShowDate getShowDate() {
+        return showDate;
     }
 
-    public void setShow(Show show) {
-        this.show = show;
+    public void setShowDate(ShowDate showDate) {
+        this.showDate = showDate;
     }
 
     public User getUser() {
