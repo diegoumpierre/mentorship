@@ -1,16 +1,22 @@
 package com.poc.ticketsystem.service;
 
 import com.poc.ticketsystem.dto.ShowSelected;
+import com.poc.ticketsystem.model.Order;
 import com.poc.ticketsystem.model.Seat;
 import com.poc.ticketsystem.model.Show;
 import com.poc.ticketsystem.model.ShowDate;
+import com.poc.ticketsystem.model.Ticket;
 import com.poc.ticketsystem.model.User;
+import com.poc.ticketsystem.model.Zone;
+import com.poc.ticketsystem.repository.OrderRepository;
 import com.poc.ticketsystem.repository.SeatRepository;
 import com.poc.ticketsystem.repository.ShowRepository;
+import com.poc.ticketsystem.repository.TicketRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -37,6 +43,8 @@ class ShowServiceImplTest {
 
     private SeatRepository seatRepository;
     private ShowRepository showRepository;
+    private OrderRepository orderRepository;
+    private TicketRepository ticketRepository;
     private Clock clock;
     private ShowServiceImpl service;
 
@@ -44,8 +52,10 @@ class ShowServiceImplTest {
     void setUp() {
         seatRepository = mock(SeatRepository.class);
         showRepository = mock(ShowRepository.class);
+        orderRepository = mock(OrderRepository.class);
+        ticketRepository = mock(TicketRepository.class);
         clock = Clock.fixed(FIXED_NOW, ZoneId.of("UTC"));
-        service = new ShowServiceImpl(showRepository, seatRepository, clock);
+        service = new ShowServiceImpl(showRepository, seatRepository, orderRepository, ticketRepository, clock);
     }
 
     private User aUser() {
@@ -374,5 +384,51 @@ class ShowServiceImplTest {
         boolean ok = service.reserveASeat(aUser(), 71L);
 
         assertFalse(ok);
+    }
+
+    @Test
+    void buyTicket_geraOrderETicketComPrecoDoZone() {
+        Zone zone = new Zone();
+        zone.setId(1L);
+        zone.setName("Pista");
+        zone.setPrice(new BigDecimal("250.00"));
+
+        Seat seat = aSeat(90L, false);
+        seat.setZone(zone);
+        when(seatRepository.findById(90L)).thenReturn(Optional.of(seat));
+
+        boolean ok = service.buyTicket(aUser(), withSeat(aSeat(90L, false)));
+
+        assertTrue(ok);
+
+        ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
+        verify(orderRepository).save(orderCaptor.capture());
+        Order savedOrder = orderCaptor.getValue();
+        assertEquals("PAID", savedOrder.getStatus());
+        assertEquals(0, new BigDecimal("250.00").compareTo(savedOrder.getTotal()));
+        assertEquals(1L, savedOrder.getUser().getId());
+
+        ArgumentCaptor<Ticket> ticketCaptor = ArgumentCaptor.forClass(Ticket.class);
+        verify(ticketRepository).save(ticketCaptor.capture());
+        Ticket savedTicket = ticketCaptor.getValue();
+        assertEquals(0, new BigDecimal("250.00").compareTo(savedTicket.getPrice()));
+        assertEquals(90L, savedTicket.getSeat().getId());
+        assertEquals(savedOrder, savedTicket.getOrder());
+    }
+
+    @Test
+    void buyTicket_naoGeraOrderQuandoZoneNaoTemPreco() {
+        Zone zone = new Zone();
+        zone.setId(1L);
+
+        Seat seat = aSeat(91L, false);
+        seat.setZone(zone);
+        when(seatRepository.findById(91L)).thenReturn(Optional.of(seat));
+
+        boolean ok = service.buyTicket(aUser(), withSeat(aSeat(91L, false)));
+
+        assertTrue(ok);
+        verify(orderRepository, never()).save(any());
+        verify(ticketRepository, never()).save(any());
     }
 }

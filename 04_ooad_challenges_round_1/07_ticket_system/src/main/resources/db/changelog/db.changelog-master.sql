@@ -120,3 +120,8 @@ ALTER TABLE tb_seat DROP COLUMN show_id;
 --changeset diego:017-show-drop-date-and-capacity
 ALTER TABLE tb_show DROP COLUMN maximum_capacity;
 ALTER TABLE tb_show DROP COLUMN date;
+
+--changeset diego:018-zone-price
+ALTER TABLE tb_zone ADD COLUMN price DECIMAL(10,2);
+UPDATE tb_zone SET price = 250.00 WHERE id = 1;
+UPDATE tb_zone SET price = 180.00 WHERE id = 2;

@@ -9,6 +9,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "tb_zone")
 public class Zone {
@@ -23,6 +25,9 @@ public class Zone {
 
     @Column(name = "capacity")
     private int capacity;
+
+    @Column(name = "price")
+    private BigDecimal price;
 
     @ManyToOne
     @JoinColumn(name = "venue_id")
@@ -50,6 +55,14 @@ public class Zone {
 
     public void setCapacity(int capacity) {
         this.capacity = capacity;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
     }
 
     public Venue getVenue() {
