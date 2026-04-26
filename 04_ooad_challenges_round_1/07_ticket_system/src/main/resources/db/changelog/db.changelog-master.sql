@@ -75,3 +75,53 @@ INSERT INTO tb_seat (id, sold, number, zone_id, show_id, user_id, version) VALUE
 ALTER TABLE tb_seat ADD COLUMN reserved_by_user_id BIGINT;
 ALTER TABLE tb_seat ADD COLUMN reserved_until TIMESTAMP;
 ALTER TABLE tb_seat ADD CONSTRAINT fk_seat_reserved_by FOREIGN KEY (reserved_by_user_id) REFERENCES tb_user(id);
+
+--changeset diego:012-create-show-date
+CREATE TABLE tb_show_date (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    show_id BIGINT,
+    date TIMESTAMP,
+    capacity INT,
+    CONSTRAINT fk_show_date_show FOREIGN KEY (show_id) REFERENCES tb_show(id)
+);
+
+--changeset diego:013-seed-show-date
+INSERT INTO tb_show_date (id, show_id, date, capacity) VALUES (1, 1, '2026-06-15 21:00:00', 4);
+INSERT INTO tb_show_date (id, show_id, date, capacity) VALUES (2, 2, '2026-08-20 20:30:00', 4);
+ALTER TABLE tb_show_date ALTER COLUMN id RESTART WITH 100;
+
+--changeset diego:014-create-order
+CREATE TABLE tb_order (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT,
+    status VARCHAR(32),
+    total DECIMAL(10,2),
+    created_at TIMESTAMP,
+    CONSTRAINT fk_order_user FOREIGN KEY (user_id) REFERENCES tb_user(id)
+);
+
+--changeset diego:015-create-ticket
+CREATE TABLE tb_ticket (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id BIGINT,
+    seat_id BIGINT,
+    price DECIMAL(10,2),
+    CONSTRAINT fk_ticket_order FOREIGN KEY (order_id) REFERENCES tb_order(id),
+    CONSTRAINT fk_ticket_seat FOREIGN KEY (seat_id) REFERENCES tb_seat(id)
+);
+
+--changeset diego:016-seat-link-show-date
+ALTER TABLE tb_seat ADD COLUMN show_date_id BIGINT;
+UPDATE tb_seat SET show_date_id = (SELECT MIN(sd.id) FROM tb_show_date sd WHERE sd.show_id = tb_seat.show_id);
+ALTER TABLE tb_seat ADD CONSTRAINT fk_seat_show_date FOREIGN KEY (show_date_id) REFERENCES tb_show_date(id);
+ALTER TABLE tb_seat DROP CONSTRAINT fk_seat_show;
+ALTER TABLE tb_seat DROP COLUMN show_id;
+
+--changeset diego:017-show-drop-date-and-capacity
+ALTER TABLE tb_show DROP COLUMN maximum_capacity;
+ALTER TABLE tb_show DROP COLUMN date;
+
+--changeset diego:018-zone-price
+ALTER TABLE tb_zone ADD COLUMN price DECIMAL(10,2);
+UPDATE tb_zone SET price = 250.00 WHERE id = 1;
+UPDATE tb_zone SET price = 180.00 WHERE id = 2;

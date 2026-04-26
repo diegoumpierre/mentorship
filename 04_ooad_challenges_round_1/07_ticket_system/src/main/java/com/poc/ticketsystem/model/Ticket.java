@@ -12,26 +12,24 @@ import jakarta.persistence.Table;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "tb_zone")
-public class Zone {
+@Table(name = "tb_ticket")
+public class Ticket {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "name")
-    private String name;
+    @ManyToOne
+    @JoinColumn(name = "order_id")
+    private Order order;
 
-    @Column(name = "capacity")
-    private int capacity;
+    @ManyToOne
+    @JoinColumn(name = "seat_id")
+    private Seat seat;
 
     @Column(name = "price")
     private BigDecimal price;
-
-    @ManyToOne
-    @JoinColumn(name = "venue_id")
-    private Venue venue;
 
     public Long getId() {
         return id;
@@ -41,20 +39,20 @@ public class Zone {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public Order getOrder() {
+        return order;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setOrder(Order order) {
+        this.order = order;
     }
 
-    public int getCapacity() {
-        return capacity;
+    public Seat getSeat() {
+        return seat;
     }
 
-    public void setCapacity(int capacity) {
-        this.capacity = capacity;
+    public void setSeat(Seat seat) {
+        this.seat = seat;
     }
 
     public BigDecimal getPrice() {
@@ -63,13 +61,5 @@ public class Zone {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
-    }
-
-    public Venue getVenue() {
-        return venue;
-    }
-
-    public void setVenue(Venue venue) {
-        this.venue = venue;
     }
 }
