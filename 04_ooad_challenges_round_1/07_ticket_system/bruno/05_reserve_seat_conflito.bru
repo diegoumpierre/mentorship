@@ -1,0 +1,25 @@
+meta {
+  name: Reserve Seat - conflito (outro user reservou)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/shows/seats/{{seatLivre2}}/reserve?userId={{userIdAna}}
+  body: none
+  auth: none
+}
+
+params:query {
+  userId: {{userIdAna}}
+}
+
+docs {
+  Pré-condição: rodar o request `Reserve Seat` antes (Diego segura o seat 2).
+  Esperado: 409 porque o assento está reservado por outro usuário dentro do TTL de 5 min.
+}
+
+assert {
+  res.status: eq 409
+  res.body: eq seat not available
+}

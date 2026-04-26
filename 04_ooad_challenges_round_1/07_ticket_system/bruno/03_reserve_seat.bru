@@ -1,0 +1,20 @@
+meta {
+  name: Reserve Seat
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/shows/seats/{{seatLivre2}}/reserve?userId={{userIdDiego}}
+  body: none
+  auth: none
+}
+
+params:query {
+  userId: {{userIdDiego}}
+}
+
+assert {
+  res.status: eq 200
+  res.body: eq reserved
+}

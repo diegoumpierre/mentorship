@@ -1,0 +1,28 @@
+meta {
+  name: Buy Seat
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/shows/buy?userId={{userIdDiego}}
+  body: json
+  auth: none
+}
+
+params:query {
+  userId: {{userIdDiego}}
+}
+
+body:json {
+  {
+    "seat": {
+      "id": {{seatLivre3}}
+    }
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body: eq sold
+}

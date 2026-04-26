@@ -1,0 +1,17 @@
+meta {
+  name: List Shows
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/shows
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+  res.body[0].name: eq Metallica - M72 Tour
+  res.body[1].name: eq Iron Maiden - Future Past
+}
