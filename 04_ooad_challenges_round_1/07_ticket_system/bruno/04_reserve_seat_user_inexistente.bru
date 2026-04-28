@@ -1,0 +1,20 @@
+meta {
+  name: Reserve Seat - user inexistente
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/shows/seats/{{seatLivre2}}/reserve?userId={{userInexistente}}
+  body: none
+  auth: none
+}
+
+params:query {
+  userId: {{userInexistente}}
+}
+
+assert {
+  res.status: eq 400
+  res.body: eq user not found
+}

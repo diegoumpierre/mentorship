@@ -1,0 +1,32 @@
+meta {
+  name: Buy Seat - apos reservar
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/shows/buy?userId={{userIdDiego}}
+  body: json
+  auth: none
+}
+
+params:query {
+  userId: {{userIdDiego}}
+}
+
+body:json {
+  {
+    "seat": {
+      "id": {{seatLivre1}}
+    }
+  }
+}
+
+docs {
+  Fluxo recomendado: rodar `Reserve Seat` no seat 1 antes (alterar `seatLivre2` para `seatLivre1` ou rodar manualmente). Como o user da reserva é o mesmo, a compra funciona.
+}
+
+assert {
+  res.status: eq 200
+  res.body: eq sold
+}

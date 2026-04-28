@@ -1,0 +1,28 @@
+meta {
+  name: Buy Seat - user inexistente
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/shows/buy?userId={{userInexistente}}
+  body: json
+  auth: none
+}
+
+params:query {
+  userId: {{userInexistente}}
+}
+
+body:json {
+  {
+    "seat": {
+      "id": {{seatLivre1}}
+    }
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body: eq user not found
+}

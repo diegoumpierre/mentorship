@@ -1,0 +1,32 @@
+meta {
+  name: Buy Seat - ja vendido
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/shows/buy?userId={{userIdDiego}}
+  body: json
+  auth: none
+}
+
+params:query {
+  userId: {{userIdDiego}}
+}
+
+body:json {
+  {
+    "seat": {
+      "id": {{seatVendido}}
+    }
+  }
+}
+
+docs {
+  Seat 4 já vem do seed marcado como `sold = TRUE`. Esperado: 409.
+}
+
+assert {
+  res.status: eq 409
+  res.body: eq seat not available
+}
