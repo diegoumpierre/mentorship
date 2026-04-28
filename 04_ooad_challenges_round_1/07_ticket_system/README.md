@@ -25,7 +25,7 @@
 | ☐ | Job que expira holds e libera os assentos | Hoje só há checagem lazy em `hasActiveReservationBySomeoneElse`; falta um `@Scheduled` |
 | ☐ | Cancelamento: refund + devolução do assento ao inventário atomicamente | Não implementado |
 | ☐ | Endpoint de seat map (available / held / sold) | Só existem `GET /shows`, `POST /shows/seats/{id}/reserve`, `POST /shows/buy` |
-| ~ | Testes: capacity boundary, dois compradores concorrentes, expiração do hold, partial-failure rollback | Capacity boundary, concurrent buyers e hold expiration estão cobertos; partial-failure rollback depende do "vender N tickets" |
+| ~ | Testes: capacity boundary, dois compradores concorrentes, expiração do hold, partial-failure rollback | Capacity boundary, concurrent buyers e hold expiration estão cobertos; `ConcurrencyLoadTest` exercita os três mecanismos com 50 threads; partial-failure rollback depende do "vender N tickets" |
 | ~ | Escolher pessimistic vs `@Version` e escrever o porquê | Implementado com `@Version` + capacity check; falta o write-up da decisão |
 
 Legenda: ☑ feito · ~ parcial · ☐ pendente
@@ -46,7 +46,7 @@ H2 em memória, schema e seed via Liquibase (`src/main/resources/db/changelog/db
 
 ## Concorrência — abordagem atual
 
-`@Version` no `Seat` (optimistic lock). Em `buyTicket`/`reserveASeat`, se `save` lança `ObjectOptimisticLockingFailureException` o usuário recebe falha (sem retry). Capacity check (`countByShowDateIdAndSoldTrue >= showDate.capacity`) acontece dentro da mesma transação antes do `save`. Cobertura em `ConcurrencyBuyTest` garante que só uma das duas threads consegue comprar o mesmo assento.
+`@Version` no `Seat` (optimistic lock). Em `buyTicket`/`reserveASeat`, se `save` lança `ObjectOptimisticLockingFailureException` o usuário recebe falha (sem retry). Capacity check (`countByShowDateIdAndSoldTrue >= showDate.capacity`) acontece dentro da mesma transação antes do `save`. Cobertura em `ConcurrencyBuyTest` garante que só uma das duas threads consegue comprar o mesmo assento. `ConcurrencyLoadTest` roda 50 threads em três cenários (mesmo assento → 1 vencedor pelo `@Version`; assento já reservado → 0 compras pelo TTL; vários assentos do mesmo show-date → vendas limitadas pela capacidade).
 
 ## TODO interno (já feito)
 
