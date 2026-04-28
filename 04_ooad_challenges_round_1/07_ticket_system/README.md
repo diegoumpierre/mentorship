@@ -22,7 +22,7 @@
 | ☑ | Não vender o mesmo assento duas vezes sob concorrência | `@Version` em `Seat` + `ConcurrencyBuyTest` valida o cenário |
 | ☑ | Tratar `OptimisticLockingFailureException` explicitamente | `buyTicket`/`reserveASeat` capturam `ObjectOptimisticLockingFailureException` e falham o usuário (sem retry) |
 | ☑ | Hold temporário (5 min) entre "selecionado" e "comprado" | `RESERVATION_TTL = Duration.ofMinutes(5)` + `reservedBy`/`reservedUntil` em `Seat` |
-| ☐ | Job que expira holds e libera os assentos | Hoje só há checagem lazy em `hasActiveReservationBySomeoneElse`; falta um `@Scheduled` |
+| ☑ | Job que expira holds e libera os assentos | `ReservationExpirationJob` com `@Scheduled` (1 em 1 min) limpa `reservedBy`/`reservedUntil` de seats não vendidos com `reservedUntil < now` |
 | ☐ | Cancelamento: refund + devolução do assento ao inventário atomicamente | Não implementado |
 | ☐ | Endpoint de seat map (available / held / sold) | Só existem `GET /shows`, `POST /shows/seats/{id}/reserve`, `POST /shows/buy` |
 | ~ | Testes: capacity boundary, dois compradores concorrentes, expiração do hold, partial-failure rollback | Capacity boundary, concurrent buyers e hold expiration estão cobertos; `ConcurrencyLoadTest` exercita os três mecanismos com 50 threads; partial-failure rollback depende do "vender N tickets" |
