@@ -1,5 +1,6 @@
 package com.poc.ticketsystem.service;
 
+import com.poc.ticketsystem.dto.SeatStatusView;
 import com.poc.ticketsystem.dto.ShowSelected;
 import com.poc.ticketsystem.model.Order;
 import com.poc.ticketsystem.model.Seat;
@@ -140,6 +141,36 @@ public class ShowServiceImpl implements ShowService {
     @Override
     public Show findById(String id) {
         return null;
+    }
+
+    @Override
+    public List<SeatStatusView> seatMapByShowDate(Long showDateId) {
+        if (showDateId == null) {
+            return List.of();
+        }
+        LocalDateTime now = LocalDateTime.now(clock);
+        return seatRepository.findByShowDateIdOrderByIdAsc(showDateId).stream()
+            .map(s -> toView(s, now))
+            .toList();
+    }
+
+    private SeatStatusView toView(Seat s, LocalDateTime now) {
+        SeatStatusView v = new SeatStatusView();
+        v.setId(s.getId());
+        v.setNumber(s.getNumber());
+        v.setZoneName(s.getZone() != null ? s.getZone().getName() : null);
+        v.setStatus(statusOf(s, now));
+        return v;
+    }
+
+    private String statusOf(Seat s, LocalDateTime now) {
+        if (s.isSold()) {
+            return "SOLD";
+        }
+        if (s.getReservedBy() != null && s.getReservedUntil() != null && s.getReservedUntil().isAfter(now)) {
+            return "HELD";
+        }
+        return "AVAILABLE";
     }
 
     private boolean hasActiveReservationBySomeoneElse(Seat seat, User user) {

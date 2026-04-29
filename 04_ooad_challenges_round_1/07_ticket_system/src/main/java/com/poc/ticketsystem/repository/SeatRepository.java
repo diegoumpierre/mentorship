@@ -11,4 +11,6 @@ public interface SeatRepository extends JpaRepository<Seat, Long> {
     long countByShowDateIdAndSoldTrue(Long showDateId);
 
     List<Seat> findBySoldFalseAndReservedUntilBefore(LocalDateTime cutoff);
+
+    List<Seat> findByShowDateIdOrderByIdAsc(Long showDateId);
 }

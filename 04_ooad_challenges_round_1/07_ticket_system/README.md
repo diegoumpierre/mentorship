@@ -24,7 +24,7 @@
 | ☑ | Hold temporário (5 min) entre "selecionado" e "comprado" | `RESERVATION_TTL = Duration.ofMinutes(5)` + `reservedBy`/`reservedUntil` em `Seat` |
 | ☑ | Job que expira holds e libera os assentos | `ReservationExpirationJob` com `@Scheduled` (1 em 1 min) limpa `reservedBy`/`reservedUntil` de seats não vendidos com `reservedUntil < now` |
 | ☐ | Cancelamento: refund + devolução do assento ao inventário atomicamente | Não implementado |
-| ☐ | Endpoint de seat map (available / held / sold) | Só existem `GET /shows`, `POST /shows/seats/{id}/reserve`, `POST /shows/buy` |
+| ☑ | Endpoint de seat map (available / held / sold) | `GET /shows/dates/{showDateId}/seats` retorna cada assento com `status` (AVAILABLE/HELD/SOLD) e `zoneName` |
 | ~ | Testes: capacity boundary, dois compradores concorrentes, expiração do hold, partial-failure rollback | Capacity boundary, concurrent buyers e hold expiration estão cobertos; `ConcurrencyLoadTest` exercita os três mecanismos com 50 threads; partial-failure rollback depende do "vender N tickets" |
 | ~ | Escolher pessimistic vs `@Version` e escrever o porquê | Implementado com `@Version` + capacity check; falta o write-up da decisão |
 
@@ -41,6 +41,7 @@ H2 em memória, schema e seed via Liquibase (`src/main/resources/db/changelog/db
 ## Endpoints
 
 - `GET /shows` — lista shows do seed
+- `GET /shows/dates/{showDateId}/seats` — seat map com status por assento
 - `POST /shows/seats/{seatId}/reserve?userId={id}` — segura o assento por 5 minutos
 - `POST /shows/buy?userId={id}` body `{"seat":{"id":N}}` — compra o assento
 

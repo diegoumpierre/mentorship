@@ -1,5 +1,6 @@
 package com.poc.ticketsystem.service;
 
+import com.poc.ticketsystem.dto.SeatStatusView;
 import com.poc.ticketsystem.dto.ShowSelected;
 import com.poc.ticketsystem.model.Show;
 import com.poc.ticketsystem.model.User;
@@ -16,5 +17,7 @@ public interface ShowService {
     boolean reserveASeat(User user, Long seatId);
 
     Show findById(String id);
+
+    List<SeatStatusView> seatMapByShowDate(Long showDateId);
 
 }
