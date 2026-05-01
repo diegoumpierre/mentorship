@@ -144,6 +144,42 @@ public class ShowServiceImpl implements ShowService {
     }
 
     @Override
+    @Transactional
+    public boolean cancelOrder(Long orderId) {
+        if (orderId == null) {
+            return false;
+        }
+        Order order = orderRepository.findById(orderId).orElse(null);
+        if (order == null) {
+            return false;
+        }
+        if ("CANCELLED".equals(order.getStatus())) {
+            return false;
+        }
+
+        List<Ticket> tickets = ticketRepository.findByOrderId(orderId);
+        for (Ticket t : tickets) {
+            Seat s = t.getSeat();
+            if (s == null) {
+                continue;
+            }
+            s.setSold(false);
+            s.setUser(null);
+            s.setReservedBy(null);
+            s.setReservedUntil(null);
+            try {
+                seatRepository.save(s);
+            } catch (ObjectOptimisticLockingFailureException e) {
+                return false;
+            }
+        }
+
+        order.setStatus("CANCELLED");
+        orderRepository.save(order);
+        return true;
+    }
+
+    @Override
     public List<SeatStatusView> seatMapByShowDate(Long showDateId) {
         if (showDateId == null) {
             return List.of();

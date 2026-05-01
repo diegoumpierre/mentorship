@@ -20,4 +20,6 @@ public interface ShowService {
 
     List<SeatStatusView> seatMapByShowDate(Long showDateId);
 
+    boolean cancelOrder(Long orderId);
+
 }
