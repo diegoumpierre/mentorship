@@ -1,5 +1,6 @@
 package com.poc.ticketsystem.controller;
 
+import com.poc.ticketsystem.dto.SeatStatusView;
 import com.poc.ticketsystem.dto.ShowSelected;
 import com.poc.ticketsystem.model.Show;
 import com.poc.ticketsystem.model.User;
@@ -31,6 +32,11 @@ public class ShowController {
     @GetMapping
     public ResponseEntity<List<Show>> listAll() {
         return ResponseEntity.ok(showService.listAllShow());
+    }
+
+    @GetMapping("/dates/{showDateId}/seats")
+    public ResponseEntity<List<SeatStatusView>> seatMap(@PathVariable Long showDateId) {
+        return ResponseEntity.ok(showService.seatMapByShowDate(showDateId));
     }
 
     @PostMapping("/seats/{seatId}/reserve")
