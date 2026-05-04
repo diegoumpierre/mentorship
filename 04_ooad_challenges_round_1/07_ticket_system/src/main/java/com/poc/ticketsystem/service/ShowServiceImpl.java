@@ -14,11 +14,13 @@ import com.poc.ticketsystem.repository.TicketRepository;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -109,6 +111,85 @@ public class ShowServiceImpl implements ShowService {
         }
 
         return true;
+    }
+
+    @Override
+    @Transactional
+    public boolean buyTickets(User user, List<Long> seatIds) {
+        if (user == null || seatIds == null || seatIds.isEmpty()) {
+            return false;
+        }
+
+        List<Seat> seats = new ArrayList<>();
+        Long sharedShowDateId = null;
+        for (Long seatId : seatIds) {
+            if (seatId == null) {
+                return rollback();
+            }
+            Seat seat = seatRepository.findById(seatId).orElse(null);
+            if (seat == null || seat.isSold() || hasActiveReservationBySomeoneElse(seat, user)) {
+                return rollback();
+            }
+            if (seat.getShowDate() != null) {
+                Long sdId = seat.getShowDate().getId();
+                if (sharedShowDateId == null) {
+                    sharedShowDateId = sdId;
+                } else if (!sharedShowDateId.equals(sdId)) {
+                    // mistura assentos de show-dates diferentes complica capacity check; nao aceito
+                    return rollback();
+                }
+            }
+            seats.add(seat);
+        }
+
+        if (sharedShowDateId != null) {
+            long currentlySold = seatRepository.countByShowDateIdAndSoldTrue(sharedShowDateId);
+            int capacity = seats.get(0).getShowDate().getCapacity();
+            if (currentlySold + seats.size() > capacity) {
+                return rollback();
+            }
+        }
+
+        BigDecimal total = BigDecimal.ZERO;
+        for (Seat s : seats) {
+            BigDecimal p = priceOf(s);
+            if (p != null) {
+                total = total.add(p);
+            }
+        }
+
+        Order order = new Order();
+        order.setUser(user);
+        order.setStatus("PAID");
+        order.setTotal(total);
+        order.setCreatedAt(LocalDateTime.now(clock));
+        orderRepository.save(order);
+
+        for (Seat seat : seats) {
+            seat.setSold(true);
+            seat.setUser(user);
+            seat.setReservedBy(null);
+            seat.setReservedUntil(null);
+            try {
+                seatRepository.save(seat);
+            } catch (ObjectOptimisticLockingFailureException e) {
+                return rollback();
+            }
+
+            BigDecimal price = priceOf(seat);
+            Ticket ticket = new Ticket();
+            ticket.setOrder(order);
+            ticket.setSeat(seat);
+            ticket.setPrice(price != null ? price : BigDecimal.ZERO);
+            ticketRepository.save(ticket);
+        }
+
+        return true;
+    }
+
+    private boolean rollback() {
+        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+        return false;
     }
 
     @Override

@@ -18,14 +18,14 @@
 | ☑ | `Show` roda em uma ou mais `ShowDate`s, cada data com seu próprio seat map e capacidade | `Seat.showDate` referencia o show-date; `ShowDate` tem sua própria `capacity`; `Show` perdeu `date` e `maximumCapacity` |
 | ☑ | Preço por `Zone`, mas reserva no assento específico | `Zone.price` (BigDecimal); `ShowServiceImpl#buyTicket` cria `Order`+`Ticket` snapshotando o preço da zona no momento da compra |
 | ☑ | Capacidade no nível do show-date, não só no nível do venue | `seatRepository.countByShowDateIdAndSoldTrue` comparado contra `seat.showDate.capacity` dentro de `buyTicket` |
-| ☐ | Vender N tickets numa transação (tudo ou nada) | `buyTicket` opera em um único assento |
+| ☑ | Vender N tickets numa transação (tudo ou nada) | `buyTickets(user, seatIds)` carrega+valida todos antes de salvar; qualquer falha (assento sumiu, vendido, capacidade estourada, optimistic lock) marca a tx como rollback-only e nenhuma venda persiste |
 | ☑ | Não vender o mesmo assento duas vezes sob concorrência | `@Version` em `Seat` + `ConcurrencyBuyTest` valida o cenário |
 | ☑ | Tratar `OptimisticLockingFailureException` explicitamente | `buyTicket`/`reserveASeat` capturam `ObjectOptimisticLockingFailureException` e falham o usuário (sem retry) |
 | ☑ | Hold temporário (5 min) entre "selecionado" e "comprado" | `RESERVATION_TTL = Duration.ofMinutes(5)` + `reservedBy`/`reservedUntil` em `Seat` |
 | ☑ | Job que expira holds e libera os assentos | `ReservationExpirationJob` com `@Scheduled` (1 em 1 min) limpa `reservedBy`/`reservedUntil` de seats não vendidos com `reservedUntil < now` |
 | ☑ | Cancelamento: refund + devolução do assento ao inventário atomicamente | `POST /orders/{id}/cancel` numa transação só: marca `Order.status=CANCELLED` e libera os assentos vinculados |
 | ☑ | Endpoint de seat map (available / held / sold) | `GET /shows/dates/{showDateId}/seats` retorna cada assento com `status` (AVAILABLE/HELD/SOLD) e `zoneName` |
-| ~ | Testes: capacity boundary, dois compradores concorrentes, expiração do hold, partial-failure rollback | Capacity boundary, concurrent buyers e hold expiration estão cobertos; `ConcurrencyLoadTest` exercita os três mecanismos com 50 threads; partial-failure rollback depende do "vender N tickets" |
+| ☑ | Testes: capacity boundary, dois compradores concorrentes, expiração do hold, partial-failure rollback | `ConcurrencyLoadTest` exercita os três mecanismos com 50 threads; `MultiPurchaseIntegrationTest` cobre o partial-failure rollback (assento já vendido no meio, assento inexistente) |
 | ~ | Escolher pessimistic vs `@Version` e escrever o porquê | Implementado com `@Version` + capacity check; falta o write-up da decisão |
 
 Legenda: ☑ feito · ~ parcial · ☐ pendente
@@ -44,6 +44,7 @@ H2 em memória, schema e seed via Liquibase (`src/main/resources/db/changelog/db
 - `GET /shows/dates/{showDateId}/seats` — seat map com status por assento
 - `POST /shows/seats/{seatId}/reserve?userId={id}` — segura o assento por 5 minutos
 - `POST /shows/buy?userId={id}` body `{"seat":{"id":N}}` — compra o assento
+- `POST /shows/buy-many?userId={id}` body `{"seatIds":[1,2]}` — compra vários numa transação (tudo ou nada)
 - `POST /orders/{orderId}/cancel` — cancela a order e libera os assentos
 
 ## Concorrência — abordagem atual
