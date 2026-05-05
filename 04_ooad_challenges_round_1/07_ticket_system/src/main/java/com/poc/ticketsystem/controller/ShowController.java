@@ -1,5 +1,6 @@
 package com.poc.ticketsystem.controller;
 
+import com.poc.ticketsystem.dto.MultiPurchase;
 import com.poc.ticketsystem.dto.SeatStatusView;
 import com.poc.ticketsystem.dto.ShowSelected;
 import com.poc.ticketsystem.model.Show;
@@ -61,6 +62,19 @@ public class ShowController {
         boolean ok = showService.buyTicket(user, showSelected);
         if (!ok) {
             return ResponseEntity.status(409).body("seat not available");
+        }
+        return ResponseEntity.ok("sold");
+    }
+
+    @PostMapping("/buy-many")
+    public ResponseEntity<String> buyMany(@RequestParam Long userId, @RequestBody MultiPurchase request) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return ResponseEntity.badRequest().body("user not found");
+        }
+        boolean ok = showService.buyTickets(user, request != null ? request.getSeatIds() : null);
+        if (!ok) {
+            return ResponseEntity.status(409).body("purchase failed");
         }
         return ResponseEntity.ok("sold");
     }

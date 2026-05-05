@@ -13,6 +13,8 @@ public interface ShowService {
 
     boolean buyTicket(User user, ShowSelected showSelected);
 
+    boolean buyTickets(User user, List<Long> seatIds);
+
 
     boolean reserveASeat(User user, Long seatId);
 
