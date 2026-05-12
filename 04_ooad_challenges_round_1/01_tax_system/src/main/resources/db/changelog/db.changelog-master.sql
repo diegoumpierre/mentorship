@@ -29,6 +29,7 @@ CREATE TABLE tb_tax_rate (
 INSERT INTO tb_product (id, name, price) VALUES (1, 'Laptop', 1500.00);
 INSERT INTO tb_product (id, name, price) VALUES (2, 'T-shirt', 30.00);
 INSERT INTO tb_product (id, name, price) VALUES (3, 'Bread', 5.00);
+ALTER TABLE tb_product ALTER COLUMN id RESTART WITH 100;
 
 --changeset diego:005-seed-states
 INSERT INTO tb_state (code, name) VALUES ('CA', 'California');
