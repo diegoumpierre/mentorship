@@ -73,7 +73,8 @@ class TaxEngineTest {
         Product laptop = products.findById(1L).orElseThrow();
         State ca = states.findById("CA").orElseThrow();
         assertThatThrownBy(() -> engine.taxFor(laptop, ca, LocalDate.of(2023, 12, 31)))
-                .isInstanceOf(NoApplicableRateException.class);
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Sem tax rate vigente");
     }
 
     @Test
@@ -89,16 +90,17 @@ class TaxEngineTest {
 
     @Test
     @Transactional
-    void produtoSemRateLancaNoApplicable() {
+    void produtoSemRateLancaErro() {
         Product gadget = products.save(new Product("Gadget", new BigDecimal("100.00")));
         State ca = states.findById("CA").orElseThrow();
         assertThatThrownBy(() -> engine.taxFor(gadget, ca, LocalDate.of(2024, 6, 1)))
-                .isInstanceOf(NoApplicableRateException.class);
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Sem tax rate vigente");
     }
 
     @Test
     @Transactional
-    void periodosSobrepostosLancamAmbiguous() {
+    void periodosSobrepostosLancamErro() {
         Product gadget = products.save(new Product("Overlap", new BigDecimal("100.00")));
         State ca = states.findById("CA").orElseThrow();
         rates.save(new TaxRate(gadget, ca, new BigDecimal("5.0000"),
@@ -106,15 +108,13 @@ class TaxEngineTest {
         rates.save(new TaxRate(gadget, ca, new BigDecimal("6.0000"),
                 new EffectivePeriod(LocalDate.of(2024, 6, 1), LocalDate.of(2025, 6, 1))));
         assertThatThrownBy(() -> engine.taxFor(gadget, ca, LocalDate.of(2024, 9, 1)))
-                .isInstanceOf(AmbiguousRateException.class);
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Mais de uma tax rate vigente");
     }
 
     @Test
     @Transactional
     void dataNoGapEntrePeriodosFalha() {
-        // Assumption documentada: data caindo num gap entre dois periodos
-        // cadastrados eh tratada como "rate nao aplicavel", igual a rate
-        // inexistente. Cabe ao loader/admin nao deixar gaps.
         Product gadget = products.save(new Product("Gap", new BigDecimal("100.00")));
         State ca = states.findById("CA").orElseThrow();
         rates.save(new TaxRate(gadget, ca, new BigDecimal("5.0000"),
@@ -122,6 +122,7 @@ class TaxEngineTest {
         rates.save(new TaxRate(gadget, ca, new BigDecimal("6.0000"),
                 new EffectivePeriod(LocalDate.of(2025, 1, 1), null)));
         assertThatThrownBy(() -> engine.taxFor(gadget, ca, LocalDate.of(2024, 10, 1)))
-                .isInstanceOf(NoApplicableRateException.class);
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Sem tax rate vigente");
     }
 }

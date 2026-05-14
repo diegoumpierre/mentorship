@@ -59,10 +59,12 @@ public class TaxEngine {
                 .filter(r -> r.getPeriod().contains(when))
                 .toList();
         if (applicable.isEmpty()) {
-            throw new NoApplicableRateException(product, state, when);
+            throw new IllegalStateException("Sem tax rate vigente pra product=" + product.getId()
+                    + " state=" + state.getCode() + " em " + when);
         }
         if (applicable.size() > 1) {
-            throw new AmbiguousRateException(product, state, when);
+            throw new IllegalStateException("Mais de uma tax rate vigente pra product=" + product.getId()
+                    + " state=" + state.getCode() + " em " + when);
         }
         return applicable.get(0);
     }

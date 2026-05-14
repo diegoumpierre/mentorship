@@ -110,6 +110,7 @@ class InvoiceTotalTest {
                 List.of(new LineItem(gadget, 1)));
 
         assertThatThrownBy(() -> engine.totalFor(invoice))
-                .isInstanceOf(NoApplicableRateException.class);
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Sem tax rate vigente");
     }
 }
