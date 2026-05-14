@@ -1,5 +1,8 @@
 package com.poc.taxsystem.service;
 
+import com.poc.taxsystem.model.Invoice;
+import com.poc.taxsystem.model.InvoiceTotal;
+import com.poc.taxsystem.model.LineItem;
 import com.poc.taxsystem.model.Product;
 import com.poc.taxsystem.model.State;
 import com.poc.taxsystem.model.TaxRate;
@@ -25,10 +28,28 @@ public class TaxEngine {
     }
 
     public BigDecimal taxFor(Product product, State state, LocalDate when) {
-        TaxRate rate = findRate(product, state, when);
-        return product.getPrice()
-                .multiply(rate.getPercent())
-                .divide(HUNDRED, MONEY_SCALE, TAX_ROUNDING);
+        BigDecimal percent = findRate(product, state, when).getPercent();
+        return computeTax(product.getPrice(), percent);
+    }
+
+    public InvoiceTotal totalFor(Invoice invoice) {
+        BigDecimal subtotal = BigDecimal.ZERO;
+        BigDecimal totalTax = BigDecimal.ZERO;
+        for (LineItem item : invoice.items()) {
+            BigDecimal lineSubtotal = item.product().getPrice()
+                    .multiply(BigDecimal.valueOf(item.quantity()));
+            BigDecimal lineRate = findRate(item.product(), invoice.state(), invoice.date()).getPercent();
+            BigDecimal lineTax = computeTax(lineSubtotal, lineRate);
+            subtotal = subtotal.add(lineSubtotal);
+            totalTax = totalTax.add(lineTax);
+        }
+        BigDecimal subRounded = subtotal.setScale(MONEY_SCALE, TAX_ROUNDING);
+        BigDecimal totalRounded = subRounded.add(totalTax).setScale(MONEY_SCALE, TAX_ROUNDING);
+        return new InvoiceTotal(subRounded, totalTax, totalRounded);
+    }
+
+    private BigDecimal computeTax(BigDecimal base, BigDecimal percent) {
+        return base.multiply(percent).divide(HUNDRED, MONEY_SCALE, TAX_ROUNDING);
     }
 
     private TaxRate findRate(Product product, State state, LocalDate when) {
