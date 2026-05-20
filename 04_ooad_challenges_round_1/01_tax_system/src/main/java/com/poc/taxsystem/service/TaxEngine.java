@@ -5,7 +5,6 @@ import com.poc.taxsystem.model.InvoiceTotal;
 import com.poc.taxsystem.model.LineItem;
 import com.poc.taxsystem.model.Product;
 import com.poc.taxsystem.model.State;
-import com.poc.taxsystem.model.TaxRate;
 import com.poc.taxsystem.repository.TaxRateRepository;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +27,7 @@ public class TaxEngine {
     }
 
     public BigDecimal taxFor(Product product, State state, LocalDate when) {
-        BigDecimal percent = findRate(product, state, when).getPercent();
+        BigDecimal percent = findRule(product, state, when).percent();
         return computeTax(product.getPrice(), percent);
     }
 
@@ -38,7 +37,7 @@ public class TaxEngine {
         for (LineItem item : invoice.items()) {
             BigDecimal lineSubtotal = item.product().getPrice()
                     .multiply(BigDecimal.valueOf(item.quantity()));
-            BigDecimal lineRate = findRate(item.product(), invoice.state(), invoice.date()).getPercent();
+            BigDecimal lineRate = findRule(item.product(), invoice.state(), invoice.date()).percent();
             BigDecimal lineTax = computeTax(lineSubtotal, lineRate);
             subtotal = subtotal.add(lineSubtotal);
             totalTax = totalTax.add(lineTax);
@@ -52,11 +51,12 @@ public class TaxEngine {
         return base.multiply(percent).divide(HUNDRED, MONEY_SCALE, TAX_ROUNDING);
     }
 
-    private TaxRate findRate(Product product, State state, LocalDate when) {
-        List<TaxRate> applicable = rates
+    private TaxRule findRule(Product product, State state, LocalDate when) {
+        List<TaxRule> applicable = rates
                 .findByProductIdAndStateCode(product.getId(), state.getCode())
                 .stream()
-                .filter(r -> r.getPeriod().contains(when))
+                .<TaxRule>map(EffectivePeriodTaxRule::new)
+                .filter(r -> r.appliesTo(product, state, when))
                 .toList();
         if (applicable.isEmpty()) {
             throw new IllegalStateException("Sem tax rate vigente pra product=" + product.getId()

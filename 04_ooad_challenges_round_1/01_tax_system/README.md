@@ -6,7 +6,7 @@
 | - [x] Decide what makes a tax rate unique — (product category × state × year) is the obvious key, but check whether city or product-id can override it |
 | - [x] Pick a strategy for "rate as of a date": effective-from / effective-to ranges, with a lookup that picks the right one |
 | - [x] Sketch the public API first: `taxFor(product, state, when)` and `totalFor(invoice)` — design the call sites before the internals |
-| - [ ] Avoid the giant `if/else` over states: use a `TaxRule` interface and let each state plug its own rule |
+| - [x] Avoid the giant `if/else` over states: use a `TaxRule` interface and let each state plug its own rule |
 | - [ ] Make adding a new state or year a no-touch change for existing code (open/closed) |
 | - [ ] Cache resolved rates by key, but invalidate when a new effective period is loaded |
 | - [ ] Handle compound taxes (federal + state + city) by composing rules, not by hardcoding them |
