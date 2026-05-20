@@ -5,7 +5,6 @@ import com.poc.taxsystem.model.InvoiceTotal;
 import com.poc.taxsystem.model.LineItem;
 import com.poc.taxsystem.model.Product;
 import com.poc.taxsystem.model.State;
-import com.poc.taxsystem.repository.TaxRateRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -20,10 +19,10 @@ public class TaxEngine {
     static final int MONEY_SCALE = 2;
     private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
 
-    private final TaxRateRepository rates;
+    private final TaxRuleProvider provider;
 
-    public TaxEngine(TaxRateRepository rates) {
-        this.rates = rates;
+    public TaxEngine(TaxRuleProvider provider) {
+        this.provider = provider;
     }
 
     public BigDecimal taxFor(Product product, State state, LocalDate when) {
@@ -52,12 +51,7 @@ public class TaxEngine {
     }
 
     private TaxRule findRule(Product product, State state, LocalDate when) {
-        List<TaxRule> applicable = rates
-                .findByProductIdAndStateCode(product.getId(), state.getCode())
-                .stream()
-                .<TaxRule>map(EffectivePeriodTaxRule::new)
-                .filter(r -> r.appliesTo(product, state, when))
-                .toList();
+        List<TaxRule> applicable = provider.rulesFor(product, state, when);
         if (applicable.isEmpty()) {
             throw new IllegalStateException("Sem tax rate vigente pra product=" + product.getId()
                     + " state=" + state.getCode() + " em " + when);
