@@ -2,8 +2,7 @@ package com.poc.taxsystem.service;
 
 import com.poc.taxsystem.model.Product;
 import com.poc.taxsystem.model.State;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Primary;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -13,13 +12,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 @Component
-@Primary
-public class CachingTaxRuleProvider implements TaxRuleProvider {
+public class CachingTaxRuleProvider implements CompoundTaxLayer {
 
     private final TaxRuleProvider delegate;
     private final ConcurrentMap<Key, List<TaxRule>> cache = new ConcurrentHashMap<>();
 
-    public CachingTaxRuleProvider(@Qualifier("jpaTaxRuleProvider") TaxRuleProvider delegate) {
+    @Autowired
+    public CachingTaxRuleProvider(JpaTaxRuleProvider delegate) {
+        this((TaxRuleProvider) delegate);
+    }
+
+    CachingTaxRuleProvider(TaxRuleProvider delegate) {
         this.delegate = delegate;
     }
 

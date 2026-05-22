@@ -19,15 +19,15 @@ public class TaxEngine {
     static final int MONEY_SCALE = 2;
     private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
 
-    private final TaxRuleProvider provider;
+    private final List<CompoundTaxLayer> layers;
 
-    public TaxEngine(TaxRuleProvider provider) {
-        this.provider = provider;
+    public TaxEngine(List<CompoundTaxLayer> layers) {
+        this.layers = layers;
     }
 
     public BigDecimal taxFor(Product product, State state, LocalDate when) {
-        BigDecimal percent = findRule(product, state, when).percent();
-        return computeTax(product.getPrice(), percent);
+        BigDecimal totalPercent = totalPercentFor(product, state, when);
+        return computeTax(product.getPrice(), totalPercent);
     }
 
     public InvoiceTotal totalFor(Invoice invoice) {
@@ -36,8 +36,8 @@ public class TaxEngine {
         for (LineItem item : invoice.items()) {
             BigDecimal lineSubtotal = item.product().getPrice()
                     .multiply(BigDecimal.valueOf(item.quantity()));
-            BigDecimal lineRate = findRule(item.product(), invoice.state(), invoice.date()).percent();
-            BigDecimal lineTax = computeTax(lineSubtotal, lineRate);
+            BigDecimal linePercent = totalPercentFor(item.product(), invoice.state(), invoice.date());
+            BigDecimal lineTax = computeTax(lineSubtotal, linePercent);
             subtotal = subtotal.add(lineSubtotal);
             totalTax = totalTax.add(lineTax);
         }
@@ -50,16 +50,24 @@ public class TaxEngine {
         return base.multiply(percent).divide(HUNDRED, MONEY_SCALE, TAX_ROUNDING);
     }
 
-    private TaxRule findRule(Product product, State state, LocalDate when) {
-        List<TaxRule> applicable = provider.rulesFor(product, state, when);
-        if (applicable.isEmpty()) {
+    private BigDecimal totalPercentFor(Product product, State state, LocalDate when) {
+        BigDecimal total = BigDecimal.ZERO;
+        int matched = 0;
+        for (CompoundTaxLayer layer : layers) {
+            List<TaxRule> rules = layer.rulesFor(product, state, when);
+            if (rules.size() > 1) {
+                throw new IllegalStateException("Mais de uma tax rate vigente pra product=" + product.getId()
+                        + " state=" + state.getCode() + " em " + when);
+            }
+            if (rules.size() == 1) {
+                total = total.add(rules.get(0).percent());
+                matched++;
+            }
+        }
+        if (matched == 0) {
             throw new IllegalStateException("Sem tax rate vigente pra product=" + product.getId()
                     + " state=" + state.getCode() + " em " + when);
         }
-        if (applicable.size() > 1) {
-            throw new IllegalStateException("Mais de uma tax rate vigente pra product=" + product.getId()
-                    + " state=" + state.getCode() + " em " + when);
-        }
-        return applicable.get(0);
+        return total;
     }
 }

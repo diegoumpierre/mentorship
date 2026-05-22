@@ -9,7 +9,7 @@
 | - [x] Avoid the giant `if/else` over states: use a `TaxRule` interface and let each state plug its own rule |
 | - [x] Make adding a new state or year a no-touch change for existing code (open/closed) |
 | - [x] Cache resolved rates by key, but invalidate when a new effective period is loaded |
-| - [ ] Handle compound taxes (federal + state + city) by composing rules, not by hardcoding them |
+| - [x] Handle compound taxes (federal + state + city) by composing rules, not by hardcoding them |
 | - [x] Round money explicitly with `BigDecimal` and a documented `RoundingMode` — no `double` |
 | - [ ] Load rates from an external source (JSON/CSV/DB) so the engine isn't tied to the data |
 | - [x] Write tests for: same product different states, same state different years, missing rate, overlapping periods |
