@@ -8,11 +8,18 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "tb_tax_rate")
+@Table(
+        name = "tb_tax_rate",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_tax_rate_product_state_from",
+                columnNames = {"product_id", "state_code", "effective_from"}
+        )
+)
 public class TaxRate {
 
     @Id

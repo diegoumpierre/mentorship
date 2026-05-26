@@ -50,3 +50,6 @@ INSERT INTO tb_tax_rate (product_id, state_code, percent, effective_from, effect
 INSERT INTO tb_tax_rate (product_id, state_code, percent, effective_from, effective_to) VALUES (3, 'CA', 7.2500, '2024-01-01', NULL);
 INSERT INTO tb_tax_rate (product_id, state_code, percent, effective_from, effective_to) VALUES (3, 'NY', 8.8750, '2024-01-01', NULL);
 INSERT INTO tb_tax_rate (product_id, state_code, percent, effective_from, effective_to) VALUES (3, 'TX', 0.0000, '2024-01-01', NULL);
+
+--changeset diego:007-tax-rate-unique
+ALTER TABLE tb_tax_rate ADD CONSTRAINT uk_tax_rate_product_state_from UNIQUE (product_id, state_code, effective_from);
