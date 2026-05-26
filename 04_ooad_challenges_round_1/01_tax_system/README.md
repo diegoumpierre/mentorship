@@ -11,6 +11,6 @@
 | - [x] Cache resolved rates by key, but invalidate when a new effective period is loaded |
 | - [x] Handle compound taxes (federal + state + city) by composing rules, not by hardcoding them |
 | - [x] Round money explicitly with `BigDecimal` and a documented `RoundingMode` — no `double` |
-| - [ ] Load rates from an external source (JSON/CSV/DB) so the engine isn't tied to the data |
+| - [x] Load rates from an external source (JSON/CSV/DB) so the engine isn't tied to the data |
 | - [x] Write tests for: same product different states, same state different years, missing rate, overlapping periods |
 | - [ ] Document the assumption you made when a date falls in a gap between two periods |

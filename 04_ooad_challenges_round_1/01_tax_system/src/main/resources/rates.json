@@ -1,0 +1,7 @@
+{
+  "rates": [
+    {"productId": 1, "stateCode": "WA", "percent": 6.5000, "from": "2024-01-01", "to": null},
+    {"productId": 2, "stateCode": "WA", "percent": 6.5000, "from": "2024-01-01", "to": null},
+    {"productId": 3, "stateCode": "WA", "percent": 0.0000, "from": "2024-01-01", "to": null}
+  ]
+}
