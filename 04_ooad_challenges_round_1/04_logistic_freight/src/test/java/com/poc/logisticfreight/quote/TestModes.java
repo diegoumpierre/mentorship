@@ -1,5 +1,6 @@
 package com.poc.logisticfreight.quote;
 
+import com.poc.logisticfreight.mode.Airplane;
 import com.poc.logisticfreight.mode.Boat;
 import com.poc.logisticfreight.mode.Rail;
 import com.poc.logisticfreight.mode.TransportMode;
@@ -34,6 +35,10 @@ final class TestModes {
 
     static TransportMode boat() {
         return new Boat(Weight.ofKilograms("500000"), new BigDecimal("35"), pricing(TransportType.BOAT));
+    }
+
+    static TransportMode airplane() {
+        return new Airplane(Weight.ofKilograms("12000"), new BigDecimal("800"), pricing(TransportType.AIRPLANE));
     }
 
     static PricingStrategy pricing(TransportType type) {

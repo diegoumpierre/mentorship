@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.List;
 
-public sealed interface TransportMode permits Boat, Truck, Rail {
+public sealed interface TransportMode permits Boat, Truck, Rail, Airplane {
 
     TransportType type();
 

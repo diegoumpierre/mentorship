@@ -24,6 +24,14 @@
       "perKilometer": 0.20,
       "fuelSurchargePercent": 5.00,
       "hazardSurcharge": 300.00
+    },
+    "AIRPLANE": {
+      "baseFare": 350.00,
+      "perCubicMeter": 60.00,
+      "perKilogram": 3.50,
+      "perKilometer": 1.80,
+      "fuelSurchargePercent": 20.00,
+      "hazardSurcharge": 600.00
     }
   }
 }

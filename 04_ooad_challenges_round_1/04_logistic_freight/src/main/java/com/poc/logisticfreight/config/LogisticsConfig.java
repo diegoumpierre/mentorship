@@ -1,6 +1,7 @@
 package com.poc.logisticfreight.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.poc.logisticfreight.mode.Airplane;
 import com.poc.logisticfreight.mode.Boat;
 import com.poc.logisticfreight.mode.Rail;
 import com.poc.logisticfreight.mode.TransportMode;
@@ -59,6 +60,14 @@ public class LogisticsConfig {
                 Weight.ofKilograms("500000"),
                 new BigDecimal("35"),
                 standardPricing(TransportType.BOAT));
+    }
+
+    @Bean
+    public TransportMode airplane() {
+        return new Airplane(
+                Weight.ofKilograms("12000"),
+                new BigDecimal("800"),
+                standardPricing(TransportType.AIRPLANE));
     }
 
     @Bean
